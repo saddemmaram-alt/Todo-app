@@ -9,55 +9,40 @@ interface Task {
   completed: boolean;
 }
 
+const API_URL = "/tasks";
+
 function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
 
-  // Get tasks from backend
   useEffect(() => {
-    fetch("http://localhost:3000/tasks")
+    fetch(API_URL)
       .then((response) => response.json())
-      .then((data) => {
-        setTasks(data);
-      })
-      .catch((error) => {
-        console.error("Error loading tasks:", error);
-      });
+      .then((data) => setTasks(data))
+      .catch((error) => console.error("Error loading tasks:", error));
   }, []);
 
-  // Add task
   const addTask = async (text: string) => {
     try {
-      const response = await fetch(
-        "http://localhost:3000/tasks",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ text }),
-        }
-      );
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text }),
+      });
 
       const newTask = await response.json();
-
-      setTasks((currentTasks) => [
-        ...currentTasks,
-        newTask,
-      ]);
+      setTasks((currentTasks) => [...currentTasks, newTask]);
     } catch (error) {
       console.error("Error adding task:", error);
     }
   };
 
-  // Toggle task
   const toggleTask = async (id: number) => {
     try {
-      const response = await fetch(
-        `http://localhost:3000/tasks/${id}`,
-        {
-          method: "PATCH",
-        }
-      );
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: "PATCH",
+      });
 
       const updatedTask = await response.json();
 
@@ -71,20 +56,14 @@ function App() {
     }
   };
 
-  // Delete task
   const deleteTask = async (id: number) => {
     try {
-      await fetch(
-        `http://localhost:3000/tasks/${id}`,
-        {
-          method: "DELETE",
-        }
-      );
+      await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+      });
 
       setTasks((currentTasks) =>
-        currentTasks.filter(
-          (task) => task.id !== id
-        )
+        currentTasks.filter((task) => task.id !== id)
       );
     } catch (error) {
       console.error("Error deleting task:", error);
@@ -95,9 +74,7 @@ function App() {
     <div>
       <h1>Todo List</h1>
 
-      <p>
-        Number of tasks: {tasks.length}
-      </p>
+      <p>Number of tasks: {tasks.length}</p>
 
       <TaskForm onAdd={addTask} />
 
