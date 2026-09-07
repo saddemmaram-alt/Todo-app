@@ -936,4 +936,4 @@ https://github.com/saddemmaram-alt/Todo-app
 
 Live application:
 
-https://todo-app-blush-kappa-49.vercel.app/
+https://todo-app-gold-three-78.vercel.app/
