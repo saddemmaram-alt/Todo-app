@@ -12,7 +12,14 @@ const validateTask = require(
   "../middleware/validateTask"
 );
 
+const authMiddleware = require(
+  "../middleware/authMiddleware"
+);
+
 const router = express.Router();
+
+// Protect all task routes with JWT authentication
+router.use(authMiddleware);
 
 /**
  * @openapi
@@ -20,7 +27,7 @@ const router = express.Router();
  *   get:
  *     tags:
  *       - Tasks
- *     summary: Get all tasks
+ *     summary: Get all tasks for the authenticated user
  *     responses:
  *       200:
  *         description: List of tasks
@@ -30,8 +37,13 @@ const router = express.Router();
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Task'
+ *       401:
+ *         description: Authentication required
  */
-router.get("/", getTasks);
+router.get(
+  "/",
+  getTasks
+);
 
 /**
  * @openapi
@@ -51,6 +63,8 @@ router.get("/", getTasks);
  *         description: Task created successfully
  *       400:
  *         description: Invalid task data
+ *       401:
+ *         description: Authentication required
  */
 router.post(
   "/",
@@ -82,6 +96,8 @@ router.post(
  *         description: Task updated successfully
  *       400:
  *         description: Invalid task data
+ *       401:
+ *         description: Authentication required
  *       404:
  *         description: Task not found
  */
@@ -107,6 +123,8 @@ router.put(
  *     responses:
  *       200:
  *         description: Task status updated
+ *       401:
+ *         description: Authentication required
  *       404:
  *         description: Task not found
  */
@@ -131,6 +149,8 @@ router.patch(
  *     responses:
  *       204:
  *         description: Task deleted successfully
+ *       401:
+ *         description: Authentication required
  *       404:
  *         description: Task not found
  */
@@ -213,4 +233,5 @@ router.delete(
  *             - Other
  *           example: University
  */
+ 
 module.exports = router;

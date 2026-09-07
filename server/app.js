@@ -9,13 +9,14 @@ const swaggerUi =
 const swaggerSpec =
   require("./swagger");
 
-const tasksRouter = require(
-  "./routes/tasks"
-);
+const tasksRouter =
+  require("./routes/tasks");
 
-const errorHandler = require(
-  "./middleware/errorHandler"
-);
+const authRouter =
+  require("./routes/auth");
+
+const errorHandler =
+  require("./middleware/errorHandler");
 
 const app = express();
 
@@ -26,6 +27,11 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("TaskFlow API is running");
 });
+
+app.use(
+  "/auth",
+  authRouter
+);
 
 app.use(
   "/tasks",

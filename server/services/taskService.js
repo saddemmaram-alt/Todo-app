@@ -11,37 +11,45 @@ function mapTask(row) {
   };
 }
 
-async function getAllTasks() {
-  const result = await pool.query(`
-    SELECT
-      id,
-      text,
-      completed,
-      TO_CHAR(due_date, 'YYYY-MM-DD') AS due_date,
-      priority,
-      category
-    FROM tasks
-    ORDER BY id ASC
-  `);
+async function getAllTasks(userId) {
+  const result = await pool.query(
+    `
+      SELECT
+        id,
+        text,
+        completed,
+        TO_CHAR(due_date, 'YYYY-MM-DD') AS due_date,
+        priority,
+        category
+      FROM tasks
+      WHERE user_id = $1
+      ORDER BY id ASC
+    `,
+    [userId]
+  );
 
   return result.rows.map(mapTask);
 }
 
-async function createTask({
-  text,
-  dueDate,
-  priority,
-  category,
-}) {
+async function createTask(
+  userId,
+  {
+    text,
+    dueDate,
+    priority,
+    category,
+  }
+) {
   const result = await pool.query(
     `
       INSERT INTO tasks (
+        user_id,
         text,
         due_date,
         priority,
         category
       )
-      VALUES ($1, $2, $3, $4)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING
         id,
         text,
@@ -51,6 +59,7 @@ async function createTask({
         category
     `,
     [
+      userId,
       text.trim(),
       dueDate || null,
       priority || "medium",
@@ -61,7 +70,10 @@ async function createTask({
   return mapTask(result.rows[0]);
 }
 
-async function findTaskById(id) {
+async function findTaskById(
+  id,
+  userId
+) {
   const result = await pool.query(
     `
       SELECT
@@ -73,8 +85,9 @@ async function findTaskById(id) {
         category
       FROM tasks
       WHERE id = $1
+        AND user_id = $2
     `,
-    [id]
+    [id, userId]
   );
 
   if (result.rows.length === 0) {
@@ -86,6 +99,7 @@ async function findTaskById(id) {
 
 async function updateTask(
   id,
+  userId,
   {
     text,
     dueDate,
@@ -94,7 +108,7 @@ async function updateTask(
   }
 ) {
   const existingTask =
-    await findTaskById(id);
+    await findTaskById(id, userId);
 
   if (!existingTask) {
     return null;
@@ -109,6 +123,7 @@ async function updateTask(
         priority = $3,
         category = $4
       WHERE id = $5
+        AND user_id = $6
       RETURNING
         id,
         text,
@@ -125,27 +140,8 @@ async function updateTask(
         existingTask.category ||
         "Other",
       id,
+      userId,
     ]
-  );
-
-  return mapTask(result.rows[0]);
-}
-
-async function toggleTask(id) {
-  const result = await pool.query(
-    `
-      UPDATE tasks
-      SET completed = NOT completed
-      WHERE id = $1
-      RETURNING
-        id,
-        text,
-        completed,
-        TO_CHAR(due_date, 'YYYY-MM-DD') AS due_date,
-        priority,
-        category
-    `,
-    [id]
   );
 
   if (result.rows.length === 0) {
@@ -155,14 +151,46 @@ async function toggleTask(id) {
   return mapTask(result.rows[0]);
 }
 
-async function deleteTask(id) {
+async function toggleTask(
+  id,
+  userId
+) {
+  const result = await pool.query(
+    `
+      UPDATE tasks
+      SET completed = NOT completed
+      WHERE id = $1
+        AND user_id = $2
+      RETURNING
+        id,
+        text,
+        completed,
+        TO_CHAR(due_date, 'YYYY-MM-DD') AS due_date,
+        priority,
+        category
+    `,
+    [id, userId]
+  );
+
+  if (result.rows.length === 0) {
+    return null;
+  }
+
+  return mapTask(result.rows[0]);
+}
+
+async function deleteTask(
+  id,
+  userId
+) {
   const result = await pool.query(
     `
       DELETE FROM tasks
       WHERE id = $1
+        AND user_id = $2
       RETURNING id
     `,
-    [id]
+    [id, userId]
   );
 
   return result.rows.length > 0;

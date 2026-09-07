@@ -1,9 +1,14 @@
-const taskService = require("../services/taskService");
+const taskService =
+  require("../services/taskService");
 
 async function getTasks(req, res, next) {
   try {
+    const userId = req.user.userId;
+
     const tasks =
-      await taskService.getAllTasks();
+      await taskService.getAllTasks(
+        userId
+      );
 
     res.status(200).json(tasks);
   } catch (error) {
@@ -13,8 +18,11 @@ async function getTasks(req, res, next) {
 
 async function createTask(req, res, next) {
   try {
+    const userId = req.user.userId;
+
     const task =
       await taskService.createTask(
+        userId,
         req.body
       );
 
@@ -29,9 +37,13 @@ async function updateTask(req, res, next) {
     const id =
       Number(req.params.id);
 
+    const userId =
+      req.user.userId;
+
     const task =
       await taskService.updateTask(
         id,
+        userId,
         req.body
       );
 
@@ -52,9 +64,13 @@ async function toggleTask(req, res, next) {
     const id =
       Number(req.params.id);
 
+    const userId =
+      req.user.userId;
+
     const task =
       await taskService.toggleTask(
-        id
+        id,
+        userId
       );
 
     if (!task) {
@@ -74,9 +90,13 @@ async function deleteTask(req, res, next) {
     const id =
       Number(req.params.id);
 
+    const userId =
+      req.user.userId;
+
     const deleted =
       await taskService.deleteTask(
-        id
+        id,
+        userId
       );
 
     if (!deleted) {
