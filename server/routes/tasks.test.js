@@ -2,8 +2,13 @@ require("../setupTests");
 
 const request = require("supertest");
 const app = require("../app");
+const pool = require("../db");
 
 describe("Tasks API", () => {
+  afterAll(async () => {
+    await pool.end();
+  });
+
   test("GET /tasks returns 200 and an array", async () => {
     const response = await request(app).get("/tasks");
 
@@ -14,7 +19,9 @@ describe("Tasks API", () => {
   test("POST /tasks creates a task", async () => {
     const response = await request(app)
       .post("/tasks")
-      .send({ text: "Learn Jest" });
+      .send({
+        text: "Learn Jest",
+      });
 
     expect(response.statusCode).toBe(201);
     expect(response.body.text).toBe("Learn Jest");
@@ -24,7 +31,9 @@ describe("Tasks API", () => {
   test("POST /tasks returns 400 for empty text", async () => {
     const response = await request(app)
       .post("/tasks")
-      .send({ text: "" });
+      .send({
+        text: "",
+      });
 
     expect(response.statusCode).toBe(400);
   });
@@ -32,7 +41,9 @@ describe("Tasks API", () => {
   test("POST /tasks returns 400 when text contains only spaces", async () => {
     const response = await request(app)
       .post("/tasks")
-      .send({ text: "   " });
+      .send({
+        text: " ",
+      });
 
     expect(response.statusCode).toBe(400);
   });
@@ -48,7 +59,9 @@ describe("Tasks API", () => {
   test("POST /tasks returns 400 when text is null", async () => {
     const response = await request(app)
       .post("/tasks")
-      .send({ text: null });
+      .send({
+        text: null,
+      });
 
     expect(response.statusCode).toBe(400);
   });
@@ -56,10 +69,14 @@ describe("Tasks API", () => {
   test("POST /tasks trims the text", async () => {
     const response = await request(app)
       .post("/tasks")
-      .send({ text: "   Learn React   " });
+      .send({
+        text: " Learn React ",
+      });
 
     expect(response.statusCode).toBe(201);
-    expect(response.body.text).toBe("Learn React");
+    expect(response.body.text).toBe(
+      "Learn React"
+    );
   });
 
   // PUT /tasks/:id - EDIT
@@ -85,34 +102,48 @@ describe("Tasks API", () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.body.id).toBe(id);
-    expect(response.body.text).toBe("Updated task");
-    expect(response.body.dueDate).toBe("2026-09-15");
-    expect(response.body.priority).toBe("high");
+    expect(response.body.text).toBe(
+      "Updated task"
+    );
+    expect(response.body.dueDate).toBe(
+      "2026-09-15"
+    );
+    expect(response.body.priority).toBe(
+      "high"
+    );
   });
 
   test("PUT /tasks/:id trims updated text", async () => {
     const created = await request(app)
       .post("/tasks")
-      .send({ text: "Original task" });
+      .send({
+        text: "Original task",
+      });
 
     const id = created.body.id;
 
     const response = await request(app)
       .put(`/tasks/${id}`)
       .send({
-        text: "   Updated task   ",
+        text: " Updated task ",
         priority: "low",
       });
 
     expect(response.statusCode).toBe(200);
-    expect(response.body.text).toBe("Updated task");
-    expect(response.body.priority).toBe("low");
+    expect(response.body.text).toBe(
+      "Updated task"
+    );
+    expect(response.body.priority).toBe(
+      "low"
+    );
   });
 
   test("PUT /tasks/:id returns 400 for empty text", async () => {
     const created = await request(app)
       .post("/tasks")
-      .send({ text: "Task to edit" });
+      .send({
+        text: "Task to edit",
+      });
 
     const id = created.body.id;
 
@@ -124,31 +155,39 @@ describe("Tasks API", () => {
       });
 
     expect(response.statusCode).toBe(400);
-    expect(response.body.error).toBe("Task text is required");
+    expect(response.body.error).toBe(
+      "Task text is required"
+    );
   });
 
   test("PUT /tasks/:id returns 400 for spaces-only text", async () => {
     const created = await request(app)
       .post("/tasks")
-      .send({ text: "Task to edit" });
+      .send({
+        text: "Task to edit",
+      });
 
     const id = created.body.id;
 
     const response = await request(app)
       .put(`/tasks/${id}`)
       .send({
-        text: "   ",
+        text: " ",
         priority: "medium",
       });
 
     expect(response.statusCode).toBe(400);
-    expect(response.body.error).toBe("Task text is required");
+    expect(response.body.error).toBe(
+      "Task text is required"
+    );
   });
 
   test("PUT /tasks/:id returns 400 for invalid priority", async () => {
     const created = await request(app)
       .post("/tasks")
-      .send({ text: "Task to edit" });
+      .send({
+        text: "Task to edit",
+      });
 
     const id = created.body.id;
 
@@ -160,7 +199,9 @@ describe("Tasks API", () => {
       });
 
     expect(response.statusCode).toBe(400);
-    expect(response.body.error).toBe("Invalid priority");
+    expect(response.body.error).toBe(
+      "Invalid priority"
+    );
   });
 
   test("PUT /tasks/:id returns 404 for unknown id", async () => {
@@ -172,7 +213,9 @@ describe("Tasks API", () => {
       });
 
     expect(response.statusCode).toBe(404);
-    expect(response.body.error).toBe("Task not found");
+    expect(response.body.error).toBe(
+      "Task not found"
+    );
   });
 
   // PATCH /tasks/:id - COMPLETE / UNCOMPLETE
@@ -180,7 +223,9 @@ describe("Tasks API", () => {
   test("PATCH /tasks/:id toggles completed", async () => {
     const created = await request(app)
       .post("/tasks")
-      .send({ text: "Test PATCH" });
+      .send({
+        text: "Test PATCH",
+      });
 
     const id = created.body.id;
 
@@ -194,7 +239,9 @@ describe("Tasks API", () => {
   test("PATCH /tasks/:id toggles completed back", async () => {
     const created = await request(app)
       .post("/tasks")
-      .send({ text: "Test PATCH again" });
+      .send({
+        text: "Test PATCH again",
+      });
 
     const id = created.body.id;
 
@@ -220,7 +267,9 @@ describe("Tasks API", () => {
   test("DELETE /tasks/:id deletes a task", async () => {
     const created = await request(app)
       .post("/tasks")
-      .send({ text: "Task to delete" });
+      .send({
+        text: "Task to delete",
+      });
 
     const id = created.body.id;
 

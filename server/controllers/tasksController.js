@@ -1,63 +1,94 @@
 const taskService = require("../services/taskService");
 
-function getTasks(req, res) {
-  const tasks = taskService.getAllTasks();
+async function getTasks(req, res, next) {
+  try {
+    const tasks =
+      await taskService.getAllTasks();
 
-  res.status(200).json(tasks);
-}
-
-function createTask(req, res) {
-  const task = taskService.createTask(
-    req.body
-  );
-
-  res.status(201).json(task);
-}
-
-function updateTask(req, res) {
-  const id = Number(req.params.id);
-
-  const task = taskService.updateTask(
-    id,
-    req.body
-  );
-
-  if (!task) {
-    return res.status(404).json({
-      error: "Task not found",
-    });
+    res.status(200).json(tasks);
+  } catch (error) {
+    next(error);
   }
-
-  res.status(200).json(task);
 }
 
-function toggleTask(req, res) {
-  const id = Number(req.params.id);
+async function createTask(req, res, next) {
+  try {
+    const task =
+      await taskService.createTask(
+        req.body
+      );
 
-  const task = taskService.toggleTask(id);
-
-  if (!task) {
-    return res.status(404).json({
-      error: "Task not found",
-    });
+    res.status(201).json(task);
+  } catch (error) {
+    next(error);
   }
-
-  res.status(200).json(task);
 }
 
-function deleteTask(req, res) {
-  const id = Number(req.params.id);
+async function updateTask(req, res, next) {
+  try {
+    const id =
+      Number(req.params.id);
 
-  const deleted =
-    taskService.deleteTask(id);
+    const task =
+      await taskService.updateTask(
+        id,
+        req.body
+      );
 
-  if (!deleted) {
-    return res.status(404).json({
-      error: "Task not found",
-    });
+    if (!task) {
+      return res.status(404).json({
+        error: "Task not found",
+      });
+    }
+
+    res.status(200).json(task);
+  } catch (error) {
+    next(error);
   }
+}
 
-  res.status(204).send();
+async function toggleTask(req, res, next) {
+  try {
+    const id =
+      Number(req.params.id);
+
+    const task =
+      await taskService.toggleTask(
+        id
+      );
+
+    if (!task) {
+      return res.status(404).json({
+        error: "Task not found",
+      });
+    }
+
+    res.status(200).json(task);
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function deleteTask(req, res, next) {
+  try {
+    const id =
+      Number(req.params.id);
+
+    const deleted =
+      await taskService.deleteTask(
+        id
+      );
+
+    if (!deleted) {
+      return res.status(404).json({
+        error: "Task not found",
+      });
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
 }
 
 module.exports = {
