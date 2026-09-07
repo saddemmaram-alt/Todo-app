@@ -1,6 +1,16 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 
-type Priority = "high" | "medium" | "low";
+import {
+  getToken,
+} from "../services/authService";
+
+type Priority =
+  | "high"
+  | "medium"
+  | "low";
 
 export type Category =
   | "University"
@@ -24,7 +34,9 @@ type TaskFilter =
   | "completed"
   | "overdue";
 
-type CategoryFilter = "all" | Category;
+type CategoryFilter =
+  | "all"
+  | Category;
 
 type SortOption =
   | "default"
@@ -40,14 +52,39 @@ type SuccessNotification = {
 
 const API_URL = "/tasks";
 
+function getTokenValue(): string | null {
+  return getToken();
+}
+
+function getAuthenticatedOptions(
+  options: RequestInit = {}
+): RequestInit {
+  const token = getTokenValue();
+
+  if (!token) {
+    return options;
+  }
+
+  return {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      Authorization: `Bearer ${token}`,
+    },
+  };
+}
+
 export function useTasks() {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] =
+    useState<Task[]>([]);
 
   const [filter, setFilter] =
     useState<TaskFilter>("all");
 
-  const [categoryFilter, setCategoryFilter] =
-    useState<CategoryFilter>("all");
+  const [
+    categoryFilter,
+    setCategoryFilter,
+  ] = useState<CategoryFilter>("all");
 
   const [searchTerm, setSearchTerm] =
     useState("");
@@ -69,11 +106,16 @@ export function useTasks() {
       null
     );
 
-  const showSuccess = (message: string) => {
-    setSuccessNotification((current) => ({
-      id: (current?.id ?? 0) + 1,
-      message,
-    }));
+  const showSuccess = (
+    message: string
+  ) => {
+    setSuccessNotification(
+      (current) => ({
+        id:
+          (current?.id ?? 0) + 1,
+        message,
+      })
+    );
   };
 
   const loadTasks = async () => {
@@ -81,15 +123,29 @@ export function useTasks() {
       setIsLoading(true);
       setError("");
 
-      const response = await fetch(API_URL);
+      const token = getTokenValue();
+
+      let response: Response;
+
+      if (token) {
+        response = await fetch(API_URL, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      } else {
+        response = await fetch(API_URL);
+      }
+
+      const data =
+        await response.json();
 
       if (response.ok === false) {
         throw new Error(
-          "Failed to load tasks"
+          data.error ||
+            "Failed to load tasks"
         );
       }
-
-      const data = await response.json();
 
       setTasks(data);
     } catch (error) {
@@ -117,20 +173,26 @@ export function useTasks() {
     category: Category = "Other"
   ) => {
     try {
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text,
-          dueDate,
-          priority,
-          category,
-        }),
-      });
+      const response =
+        await fetch(
+          API_URL,
+          getAuthenticatedOptions({
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              text,
+              dueDate,
+              priority,
+              category,
+            }),
+          })
+        );
 
-      const newTask = await response.json();
+      const newTask =
+        await response.json();
 
       if (response.ok === false) {
         throw new Error(
@@ -139,10 +201,12 @@ export function useTasks() {
         );
       }
 
-      setTasks((currentTasks) => [
-        ...currentTasks,
-        newTask,
-      ]);
+      setTasks(
+        (currentTasks) => [
+          ...currentTasks,
+          newTask,
+        ]
+      );
 
       showSuccess(
         "Task added successfully"
@@ -163,21 +227,23 @@ export function useTasks() {
     category: Category = "Other"
   ): Promise<void> => {
     try {
-      const response = await fetch(
-        `${API_URL}/${id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            text,
-            dueDate,
-            priority,
-            category,
-          }),
-        }
-      );
+      const response =
+        await fetch(
+          `${API_URL}/${id}`,
+          getAuthenticatedOptions({
+            method: "PUT",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              text,
+              dueDate,
+              priority,
+              category,
+            }),
+          })
+        );
 
       const updatedTask =
         await response.json();
@@ -189,12 +255,14 @@ export function useTasks() {
         );
       }
 
-      setTasks((currentTasks) =>
-        currentTasks.map((task) =>
-          task.id === id
-            ? updatedTask
-            : task
-        )
+      setTasks(
+        (currentTasks) =>
+          currentTasks.map(
+            (task) =>
+              task.id === id
+                ? updatedTask
+                : task
+          )
       );
 
       showSuccess(
@@ -210,14 +278,32 @@ export function useTasks() {
     }
   };
 
-  const toggleTask = async (id: number) => {
+  const toggleTask = async (
+    id: number
+  ) => {
     try {
-      const response = await fetch(
-        `${API_URL}/${id}`,
-        {
-          method: "PATCH",
-        }
-      );
+      const token = getTokenValue();
+
+      let response: Response;
+
+      if (token) {
+        response = await fetch(
+          `${API_URL}/${id}`,
+          {
+            method: "PATCH",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      } else {
+        response = await fetch(
+          `${API_URL}/${id}`,
+          {
+            method: "PATCH",
+          }
+        );
+      }
 
       const updatedTask =
         await response.json();
@@ -229,12 +315,14 @@ export function useTasks() {
         );
       }
 
-      setTasks((currentTasks) =>
-        currentTasks.map((task) =>
-          task.id === id
-            ? updatedTask
-            : task
-        )
+      setTasks(
+        (currentTasks) =>
+          currentTasks.map(
+            (task) =>
+              task.id === id
+                ? updatedTask
+                : task
+          )
       );
 
       showSuccess(
@@ -250,25 +338,57 @@ export function useTasks() {
     }
   };
 
-  const deleteTask = async (id: number) => {
+  const deleteTask = async (
+    id: number
+  ) => {
     try {
-      const response = await fetch(
-        `${API_URL}/${id}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const token = getTokenValue();
 
-      if (response.ok === false) {
-        throw new Error(
-          "Failed to delete task"
+      let response: Response;
+
+      if (token) {
+        response = await fetch(
+          `${API_URL}/${id}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      } else {
+        response = await fetch(
+          `${API_URL}/${id}`,
+          {
+            method: "DELETE",
+          }
         );
       }
 
-      setTasks((currentTasks) =>
-        currentTasks.filter(
-          (task) => task.id !== id
-        )
+      if (response.ok === false) {
+        let message =
+          "Failed to delete task";
+
+        try {
+          const data =
+            await response.json();
+
+          message =
+            data.error || message;
+        } catch {
+          // DELETE 404/204 may
+          // have no JSON body.
+        }
+
+        throw new Error(message);
+      }
+
+      setTasks(
+        (currentTasks) =>
+          currentTasks.filter(
+            (task) =>
+              task.id !== id
+          )
       );
 
       showSuccess(
@@ -282,18 +402,20 @@ export function useTasks() {
     }
   };
 
-  const filteredTasks = tasks.filter(
-    (task) => {
+  const filteredTasks =
+    tasks.filter((task) => {
       let matchesStatus = true;
       let matchesCategory = true;
       let matchesSearch = true;
 
       if (filter === "active") {
-        matchesStatus = !task.completed;
+        matchesStatus =
+          !task.completed;
       }
 
       if (filter === "completed") {
-        matchesStatus = task.completed;
+        matchesStatus =
+          task.completed;
       }
 
       if (filter === "overdue") {
@@ -304,20 +426,26 @@ export function useTasks() {
             new Date();
       }
 
-      if (categoryFilter !== "all") {
+      if (
+        categoryFilter !== "all"
+      ) {
         matchesCategory =
-          (task.category ?? "Other") ===
+          (task.category ??
+            "Other") ===
           categoryFilter;
       }
 
-      if (searchTerm.trim() !== "") {
-        matchesSearch = task.text
-          .toLowerCase()
-          .includes(
-            searchTerm
-              .trim()
-              .toLowerCase()
-          );
+      if (
+        searchTerm.trim() !== ""
+      ) {
+        matchesSearch =
+          task.text
+            .toLowerCase()
+            .includes(
+              searchTerm
+                .trim()
+                .toLowerCase()
+            );
       }
 
       return (
@@ -325,10 +453,11 @@ export function useTasks() {
         matchesCategory &&
         matchesSearch
       );
-    }
-  );
+    });
 
-  const sortedTasks = [...filteredTasks];
+  const sortedTasks = [
+    ...filteredTasks,
+  ];
 
   const priorityOrder: Record<
     Priority,
@@ -339,7 +468,9 @@ export function useTasks() {
     low: 3,
   };
 
-  if (sortBy === "priority-high") {
+  if (
+    sortBy === "priority-high"
+  ) {
     sortedTasks.sort(
       (a, b) =>
         priorityOrder[a.priority] -
@@ -347,7 +478,9 @@ export function useTasks() {
     );
   }
 
-  if (sortBy === "priority-low") {
+  if (
+    sortBy === "priority-low"
+  ) {
     sortedTasks.sort(
       (a, b) =>
         priorityOrder[b.priority] -
@@ -357,7 +490,10 @@ export function useTasks() {
 
   if (sortBy === "due-date") {
     sortedTasks.sort((a, b) => {
-      if (!a.dueDate && !b.dueDate) {
+      if (
+        !a.dueDate &&
+        !b.dueDate
+      ) {
         return 0;
       }
 
@@ -370,15 +506,23 @@ export function useTasks() {
       }
 
       return (
-        new Date(a.dueDate).getTime() -
-        new Date(b.dueDate).getTime()
+        new Date(
+          a.dueDate
+        ).getTime() -
+        new Date(
+          b.dueDate
+        ).getTime()
       );
     });
   }
 
-  if (sortBy === "alphabetical") {
+  if (
+    sortBy === "alphabetical"
+  ) {
     sortedTasks.sort((a, b) =>
-      a.text.localeCompare(b.text)
+      a.text.localeCompare(
+        b.text
+      )
     );
   }
 
