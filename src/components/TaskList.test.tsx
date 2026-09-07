@@ -1,4 +1,9 @@
-import { render, screen } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+} from "@testing-library/react";
+
 import TaskList from "./TaskList";
 
 describe("TaskList", () => {
@@ -7,28 +12,40 @@ describe("TaskList", () => {
       id: 1,
       text: "Learn React",
       completed: false,
+      priority: "medium" as const,
+      dueDate: null,
+      category: "University" as const,
     },
     {
       id: 2,
-      text: "Write tests",
+      text: "Prepare report",
       completed: true,
+      priority: "high" as const,
+      dueDate: null,
+      category: "Work" as const,
     },
   ];
 
-  test("displays all tasks", () => {
+  test("displays tasks", () => {
     render(
       <TaskList
         tasks={tasks}
         onToggle={() => {}}
         onDelete={() => {}}
+        onEdit={async () => {}}
       />
     );
 
-    expect(screen.getByText("Learn React")).toBeInTheDocument();
-    expect(screen.getByText("Write tests")).toBeInTheDocument();
+    expect(
+      screen.getByText("Learn React")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText("Prepare report")
+    ).toBeInTheDocument();
   });
 
-  test("renders an empty list when there are no tasks", () => {
+  test("displays default empty state", () => {
     render(
       <TaskList
         tasks={[]}
@@ -37,6 +54,94 @@ describe("TaskList", () => {
       />
     );
 
-    expect(screen.queryByRole("listitem")).not.toBeInTheDocument();
+    expect(
+      screen.getByText("No tasks yet")
+    ).toBeInTheDocument();
+  });
+
+  test("displays custom empty state", () => {
+    render(
+      <TaskList
+        tasks={[]}
+        onToggle={() => {}}
+        onDelete={() => {}}
+        emptyMessage="No matching tasks"
+      />
+    );
+
+    expect(
+      screen.getByText("No matching tasks")
+    ).toBeInTheDocument();
+  });
+
+  test("calls onToggle", () => {
+    const onToggle = jest.fn();
+
+    render(
+      <TaskList
+        tasks={tasks}
+        onToggle={onToggle}
+        onDelete={() => {}}
+        onEdit={async () => {}}
+      />
+    );
+
+    fireEvent.click(
+      screen.getAllByRole("checkbox")[0]
+    );
+
+    expect(onToggle).toHaveBeenCalledWith(1);
+  });
+
+  test("opens delete confirmation", () => {
+    const onDelete = jest.fn();
+
+    render(
+      <TaskList
+        tasks={tasks}
+        onToggle={() => {}}
+        onDelete={onDelete}
+        onEdit={async () => {}}
+      />
+    );
+
+    fireEvent.click(
+      screen.getAllByRole("button", {
+        name: "Delete",
+      })[0]
+    );
+
+    expect(
+      screen.getByText("Delete task?")
+    ).toBeInTheDocument();
+
+    expect(onDelete).not.toHaveBeenCalled();
+  });
+
+  test("calls onDelete after confirmation", () => {
+    const onDelete = jest.fn();
+
+    render(
+      <TaskList
+        tasks={tasks}
+        onToggle={() => {}}
+        onDelete={onDelete}
+        onEdit={async () => {}}
+      />
+    );
+
+    fireEvent.click(
+      screen.getAllByRole("button", {
+        name: "Delete",
+      })[0]
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Delete",
+      })
+    );
+
+    expect(onDelete).toHaveBeenCalledWith(1);
   });
 });

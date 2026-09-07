@@ -1,68 +1,216 @@
 const express = require("express");
 
+const {
+  getTasks,
+  createTask,
+  updateTask,
+  toggleTask,
+  deleteTask,
+} = require("../controllers/tasksController");
+
+const validateTask = require(
+  "../middleware/validateTask"
+);
+
 const router = express.Router();
 
-let tasks = [];
-let nextId = 1;
+/**
+ * @openapi
+ * /tasks:
+ *   get:
+ *     tags:
+ *       - Tasks
+ *     summary: Get all tasks
+ *     responses:
+ *       200:
+ *         description: List of tasks
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Task'
+ */
+router.get("/", getTasks);
 
-// GET /tasks
-router.get("/", (req, res) => {
-  res.status(200).json(tasks);
-});
+/**
+ * @openapi
+ * /tasks:
+ *   post:
+ *     tags:
+ *       - Tasks
+ *     summary: Create a new task
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateTask'
+ *     responses:
+ *       201:
+ *         description: Task created successfully
+ *       400:
+ *         description: Invalid task data
+ */
+router.post(
+  "/",
+  validateTask,
+  createTask
+);
 
-// POST /tasks
-router.post("/", (req, res) => {
-  const { text } = req.body;
+/**
+ * @openapi
+ * /tasks/{id}:
+ *   put:
+ *     tags:
+ *       - Tasks
+ *     summary: Update a task
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateTask'
+ *     responses:
+ *       200:
+ *         description: Task updated successfully
+ *       400:
+ *         description: Invalid task data
+ *       404:
+ *         description: Task not found
+ */
+router.put(
+  "/:id",
+  validateTask,
+  updateTask
+);
 
-  if (!text || text.trim().length === 0) {
-    return res.status(400).json({
-      error: "Task text is required",
-    });
-  }
+/**
+ * @openapi
+ * /tasks/{id}:
+ *   patch:
+ *     tags:
+ *       - Tasks
+ *     summary: Toggle task completion
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Task status updated
+ *       404:
+ *         description: Task not found
+ */
+router.patch(
+  "/:id",
+  toggleTask
+);
 
-  const task = {
-    id: nextId++,
-    text: text.trim(),
-    completed: false,
-  };
+/**
+ * @openapi
+ * /tasks/{id}:
+ *   delete:
+ *     tags:
+ *       - Tasks
+ *     summary: Delete a task
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       204:
+ *         description: Task deleted successfully
+ *       404:
+ *         description: Task not found
+ */
+router.delete(
+  "/:id",
+  deleteTask
+);
 
-  tasks.push(task);
-
-  res.status(201).json(task);
-});
-
-// PATCH /tasks/:id
-router.patch("/:id", (req, res) => {
-  const id = Number(req.params.id);
-
-  const task = tasks.find((task) => task.id === id);
-
-  if (!task) {
-    return res.status(404).json({
-      error: "Task not found",
-    });
-  }
-
-  task.completed = !task.completed;
-
-  res.status(200).json(task);
-});
-
-// DELETE /tasks/:id
-router.delete("/:id", (req, res) => {
-  const id = Number(req.params.id);
-
-  const index = tasks.findIndex((task) => task.id === id);
-
-  if (index === -1) {
-    return res.status(404).json({
-      error: "Task not found",
-    });
-  }
-
-  tasks.splice(index, 1);
-
-  res.status(204).send();
-});
-
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Task:
+ *       type: object
+ *       required:
+ *         - id
+ *         - text
+ *         - completed
+ *         - priority
+ *         - category
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         text:
+ *           type: string
+ *           example: Learn React
+ *         completed:
+ *           type: boolean
+ *           example: false
+ *         dueDate:
+ *           type: string
+ *           format: date
+ *           nullable: true
+ *           example: 2026-09-15
+ *         priority:
+ *           type: string
+ *           enum:
+ *             - high
+ *             - medium
+ *             - low
+ *           example: medium
+ *         category:
+ *           type: string
+ *           enum:
+ *             - University
+ *             - Work
+ *             - Personal
+ *             - Shopping
+ *             - Other
+ *           example: University
+ *
+ *     CreateTask:
+ *       type: object
+ *       required:
+ *         - text
+ *       properties:
+ *         text:
+ *           type: string
+ *           example: Learn React
+ *         dueDate:
+ *           type: string
+ *           format: date
+ *           nullable: true
+ *           example: 2026-09-15
+ *         priority:
+ *           type: string
+ *           enum:
+ *             - high
+ *             - medium
+ *             - low
+ *           example: medium
+ *         category:
+ *           type: string
+ *           enum:
+ *             - University
+ *             - Work
+ *             - Personal
+ *             - Shopping
+ *             - Other
+ *           example: University
+ */
 module.exports = router;

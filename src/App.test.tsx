@@ -4,6 +4,7 @@ import {
   fireEvent,
   waitFor,
 } from "@testing-library/react";
+
 import App from "./App";
 
 describe("App", () => {
@@ -14,6 +15,7 @@ describe("App", () => {
 
   test("displays Todo List title and loads tasks", async () => {
     (globalThis.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
       json: async () => [
         {
           id: 1,
@@ -25,39 +27,114 @@ describe("App", () => {
 
     render(<App />);
 
-    expect(screen.getByText("Todo List")).toBeInTheDocument();
+    expect(
+      screen.getByText("TaskFlow")
+    ).toBeInTheDocument();
 
     await screen.findByText("Learn React");
 
-    expect(globalThis.fetch).toHaveBeenCalledWith(
-      "http://localhost:3000/tasks"
-    );
+    expect(
+      globalThis.fetch
+    ).toHaveBeenCalledWith("/tasks");
   });
 
-  test("handles error when loading tasks", async () => {
+  test("displays error state when loading tasks fails", async () => {
     const consoleSpy = jest
       .spyOn(console, "error")
       .mockImplementation(() => {});
 
-    (globalThis.fetch as jest.Mock).mockRejectedValueOnce(
+    (
+      globalThis.fetch as jest.Mock
+    ).mockRejectedValueOnce(
       new Error("GET error")
     );
 
     render(<App />);
 
-    await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalled();
-    });
+    expect(
+      await screen.findByText(
+        "Unable to load tasks. Please try again."
+      )
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByRole("button", {
+        name: "Try Again",
+      })
+    ).toBeInTheDocument();
 
     consoleSpy.mockRestore();
+  });
+
+  test("reloads tasks when Try Again is clicked", async () => {
+    const consoleSpy = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    (
+      globalThis.fetch as jest.Mock
+    )
+      .mockRejectedValueOnce(
+        new Error("GET error")
+      )
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [
+          {
+            id: 1,
+            text: "Task after retry",
+            completed: false,
+          },
+        ],
+      });
+
+    render(<App />);
+
+    const retryButton =
+      await screen.findByRole("button", {
+        name: "Try Again",
+      });
+
+    fireEvent.click(retryButton);
+
+    expect(
+      await screen.findByText(
+        "Task after retry"
+      )
+    ).toBeInTheDocument();
+
+    expect(
+      globalThis.fetch
+    ).toHaveBeenCalledTimes(2);
+
+    consoleSpy.mockRestore();
+  });
+
+  test("shows empty state when there are no tasks", async () => {
+    (
+      globalThis.fetch as jest.Mock
+    ).mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    });
+
+    render(<App />);
+
+    expect(
+      await screen.findByText(
+        "📝 No tasks yet. Create your first task!"
+      )
+    ).toBeInTheDocument();
   });
 
   test("adds a new task", async () => {
     (globalThis.fetch as jest.Mock)
       .mockResolvedValueOnce({
+        ok: true,
         json: async () => [],
       })
       .mockResolvedValueOnce({
+        ok: true,
         json: async () => ({
           id: 1,
           text: "Learn React",
@@ -67,13 +144,23 @@ describe("App", () => {
 
     render(<App />);
 
-    await screen.findByText("No tasks yet");
+    await screen.findByText(
+      "📝 No tasks yet. Create your first task!"
+    );
 
-    const input = screen.getByPlaceholderText("Write a task");
+    const input = screen.getByRole(
+      "textbox",
+      {
+        name: "Write a task",
+      }
+    );
 
-    const button = screen.getByRole("button", {
-      name: "Add",
-    });
+    const button = screen.getByRole(
+      "button",
+      {
+        name: "Add",
+      }
+    );
 
     fireEvent.change(input, {
       target: {
@@ -83,10 +170,14 @@ describe("App", () => {
 
     fireEvent.click(button);
 
-    await screen.findByText("Learn React");
+    await screen.findByText(
+      "Learn React"
+    );
 
-    expect(globalThis.fetch).toHaveBeenCalledWith(
-      "http://localhost:3000/tasks",
+    expect(
+      globalThis.fetch
+    ).toHaveBeenCalledWith(
+      "/tasks",
       expect.objectContaining({
         method: "POST",
       })
@@ -100,6 +191,7 @@ describe("App", () => {
 
     (globalThis.fetch as jest.Mock)
       .mockResolvedValueOnce({
+        ok: true,
         json: async () => [],
       })
       .mockRejectedValueOnce(
@@ -108,13 +200,23 @@ describe("App", () => {
 
     render(<App />);
 
-    await screen.findByText("No tasks yet");
+    await screen.findByText(
+      "📝 No tasks yet. Create your first task!"
+    );
 
-    const input = screen.getByPlaceholderText("Write a task");
+    const input = screen.getByRole(
+      "textbox",
+      {
+        name: "Write a task",
+      }
+    );
 
-    const button = screen.getByRole("button", {
-      name: "Add",
-    });
+    const button = screen.getByRole(
+      "button",
+      {
+        name: "Add",
+      }
+    );
 
     fireEvent.change(input, {
       target: {
@@ -134,6 +236,7 @@ describe("App", () => {
   test("toggles a task", async () => {
     (globalThis.fetch as jest.Mock)
       .mockResolvedValueOnce({
+        ok: true,
         json: async () => [
           {
             id: 1,
@@ -143,6 +246,7 @@ describe("App", () => {
         ],
       })
       .mockResolvedValueOnce({
+        ok: true,
         json: async () => ({
           id: 1,
           text: "Learn React",
@@ -152,15 +256,20 @@ describe("App", () => {
 
     render(<App />);
 
-    await screen.findByText("Learn React");
+    await screen.findByText(
+      "Learn React"
+    );
 
-    const checkbox = screen.getByRole("checkbox");
+    const checkbox =
+      screen.getByRole("checkbox");
 
     fireEvent.click(checkbox);
 
     await waitFor(() => {
-      expect(globalThis.fetch).toHaveBeenCalledWith(
-        "http://localhost:3000/tasks/1",
+      expect(
+        globalThis.fetch
+      ).toHaveBeenCalledWith(
+        "/tasks/1",
         {
           method: "PATCH",
         }
@@ -175,6 +284,7 @@ describe("App", () => {
 
     (globalThis.fetch as jest.Mock)
       .mockResolvedValueOnce({
+        ok: true,
         json: async () => [
           {
             id: 1,
@@ -189,9 +299,12 @@ describe("App", () => {
 
     render(<App />);
 
-    await screen.findByText("Learn React");
+    await screen.findByText(
+      "Learn React"
+    );
 
-    const checkbox = screen.getByRole("checkbox");
+    const checkbox =
+      screen.getByRole("checkbox");
 
     fireEvent.click(checkbox);
 
@@ -202,9 +315,10 @@ describe("App", () => {
     consoleSpy.mockRestore();
   });
 
-  test("deletes a task", async () => {
+  test("deletes a task after confirmation", async () => {
     (globalThis.fetch as jest.Mock)
       .mockResolvedValueOnce({
+        ok: true,
         json: async () => [
           {
             id: 1,
@@ -213,26 +327,47 @@ describe("App", () => {
           },
         ],
       })
-      .mockResolvedValueOnce({});
+      .mockResolvedValueOnce({
+        ok: true,
+      });
 
     render(<App />);
 
-    await screen.findByText("Task to delete");
+    await screen.findByText(
+      "Task to delete"
+    );
 
-    const deleteButton = screen.getByRole("button", {
-      name: /delete/i,
-    });
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Delete",
+      })
+    );
 
-    fireEvent.click(deleteButton);
+    expect(
+      screen.getByText("Delete task?")
+    ).toBeInTheDocument();
+
+    const deleteButtons =
+      screen.getAllByRole("button", {
+        name: "Delete",
+      });
+
+    fireEvent.click(
+      deleteButtons[deleteButtons.length - 1]
+    );
 
     await waitFor(() => {
       expect(
-        screen.queryByText("Task to delete")
+        screen.queryByText(
+          "Task to delete"
+        )
       ).not.toBeInTheDocument();
     });
 
-    expect(globalThis.fetch).toHaveBeenCalledWith(
-      "http://localhost:3000/tasks/1",
+    expect(
+      globalThis.fetch
+    ).toHaveBeenCalledWith(
+      "/tasks/1",
       {
         method: "DELETE",
       }
@@ -246,6 +381,7 @@ describe("App", () => {
 
     (globalThis.fetch as jest.Mock)
       .mockResolvedValueOnce({
+        ok: true,
         json: async () => [
           {
             id: 1,
@@ -260,17 +396,38 @@ describe("App", () => {
 
     render(<App />);
 
-    await screen.findByText("Task to delete");
+    await screen.findByText(
+      "Task to delete"
+    );
 
-    const deleteButton = screen.getByRole("button", {
-      name: /delete/i,
-    });
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Delete",
+      })
+    );
 
-    fireEvent.click(deleteButton);
+    expect(
+      screen.getByText("Delete task?")
+    ).toBeInTheDocument();
+
+    const deleteButtons =
+      screen.getAllByRole("button", {
+        name: "Delete",
+      });
+
+    fireEvent.click(
+      deleteButtons[deleteButtons.length - 1]
+    );
 
     await waitFor(() => {
       expect(consoleSpy).toHaveBeenCalled();
     });
+
+    expect(
+      screen.getByText(
+        "Task to delete"
+      )
+    ).toBeInTheDocument();
 
     consoleSpy.mockRestore();
   });
@@ -278,6 +435,7 @@ describe("App", () => {
   test("keeps other tasks unchanged when toggling one task", async () => {
     (globalThis.fetch as jest.Mock)
       .mockResolvedValueOnce({
+        ok: true,
         json: async () => [
           {
             id: 1,
@@ -292,6 +450,7 @@ describe("App", () => {
         ],
       })
       .mockResolvedValueOnce({
+        ok: true,
         json: async () => ({
           id: 1,
           text: "Learn React",
@@ -301,17 +460,172 @@ describe("App", () => {
 
     render(<App />);
 
-    await screen.findByText("Learn React");
-    await screen.findByText("Learn TypeScript");
+    await screen.findByText(
+      "Learn React"
+    );
 
-    const checkboxes = screen.getAllByRole("checkbox");
+    await screen.findByText(
+      "Learn TypeScript"
+    );
+
+    const checkboxes =
+      screen.getAllByRole("checkbox");
 
     fireEvent.click(checkboxes[0]);
 
     await waitFor(() => {
-      expect(checkboxes[0]).toBeChecked();
+      expect(
+        checkboxes[0]
+      ).toBeChecked();
     });
 
-    expect(checkboxes[1]).not.toBeChecked();
+    expect(
+      checkboxes[1]
+    ).not.toBeChecked();
+  });
+
+  test("shows success toast after adding a task", async () => {
+    (globalThis.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          id: 1,
+          text: "New Task",
+          completed: false,
+          dueDate: null,
+          priority: "medium",
+          category: "Other",
+        }),
+      });
+
+    render(<App />);
+
+    await screen.findByText(
+      "📝 No tasks yet. Create your first task!"
+    );
+
+    const input = screen.getByRole(
+      "textbox",
+      {
+        name: "Write a task",
+      }
+    );
+
+    fireEvent.change(input, {
+      target: {
+        value: "New Task",
+      },
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Add",
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        "Task added successfully"
+      )
+    ).toBeInTheDocument();
+  });
+
+  test("shows success toast after completing a task", async () => {
+    (globalThis.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [
+          {
+            id: 1,
+            text: "Learn React",
+            completed: false,
+            dueDate: null,
+            priority: "medium",
+            category: "University",
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          id: 1,
+          text: "Learn React",
+          completed: true,
+          dueDate: null,
+          priority: "medium",
+          category: "University",
+        }),
+      });
+
+    render(<App />);
+
+    await screen.findByText(
+      "Learn React"
+    );
+
+    fireEvent.click(
+      screen.getByRole("checkbox")
+    );
+
+    expect(
+      await screen.findByText(
+        "Task completed"
+      )
+    ).toBeInTheDocument();
+  });
+
+  test("shows success toast after deleting a task", async () => {
+    (globalThis.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [
+          {
+            id: 1,
+            text: "Task to delete",
+            completed: false,
+            dueDate: null,
+            priority: "medium",
+            category: "Other",
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+      });
+
+    render(<App />);
+
+    await screen.findByText(
+      "Task to delete"
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Delete",
+      })
+    );
+
+    expect(
+      screen.getByText("Delete task?")
+    ).toBeInTheDocument();
+
+    const deleteButtons =
+      screen.getAllByRole("button", {
+        name: "Delete",
+      });
+
+    fireEvent.click(
+      deleteButtons[deleteButtons.length - 1]
+    );
+
+    expect(
+      await screen.findByText(
+        "Task deleted successfully"
+      )
+    ).toBeInTheDocument();
   });
 });
