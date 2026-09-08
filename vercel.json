@@ -15,7 +15,15 @@
   ],
   "routes": [
     {
+      "src": "/auth(.*)",
+      "dest": "/api/index.js"
+    },
+    {
       "src": "/tasks(.*)",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/api-docs(.*)",
       "dest": "/api/index.js"
     },
     {
