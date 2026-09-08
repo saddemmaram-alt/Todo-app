@@ -29,11 +29,41 @@ export type AuthUser = {
   async function parseResponse(
     response: Response
   ) {
-    const data = await response.json();
+    let data: any = null;
   
-    if (!response.ok) {
+    try {
+      if (
+        typeof response.json ===
+        "function"
+      ) {
+        data = await response.json();
+      } else if (
+        typeof response.text ===
+        "function"
+      ) {
+        const text =
+          await response.text();
+  
+        if (text) {
+          data = JSON.parse(text);
+        }
+      }
+    } catch {
       throw new Error(
-        data.error || "Authentication failed"
+        `Server returned invalid JSON (${response.status})`
+      );
+    }
+  
+    if (response.ok === false) {
+      throw new Error(
+        data?.error ||
+          `Request failed (${response.status})`
+      );
+    }
+  
+    if (!data) {
+      throw new Error(
+        `Server returned an empty response (${response.status})`
       );
     }
   
