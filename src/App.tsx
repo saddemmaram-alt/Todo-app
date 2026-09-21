@@ -15,7 +15,9 @@ import {
 } from "@mui/material";
 
 import { useMemo, useState } from "react";
+
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+
 import {
   Brightness4,
   Brightness7,
@@ -31,6 +33,9 @@ import { useTasks } from "./viewmodels/useTasks";
 import "./App.css";
 
 function App() {
+  /*
+   * Light / Dark Mode
+   */
   const [darkMode, setDarkMode] = useState(false);
 
   const theme = useMemo(
@@ -66,6 +71,9 @@ function App() {
     retryLoadTasks,
   } = useTasks();
 
+  /*
+   * Dashboard statistics
+   */
   const totalTasks = tasks.length;
 
   const activeTasks = tasks.filter(
@@ -85,7 +93,7 @@ function App() {
   }).length;
 
   /*
-   * Display loading error
+   * Loading error
    */
   if (error) {
     return (
@@ -100,6 +108,7 @@ function App() {
           }}
         >
           <Container maxWidth="md">
+
             {/* Theme button */}
             <Box
               sx={{
@@ -160,6 +169,7 @@ function App() {
             >
               Try Again
             </Button>
+
           </Container>
         </Box>
       </ThemeProvider>
@@ -179,7 +189,10 @@ function App() {
       >
         <Container maxWidth="md">
 
-          {/* Header */}
+          {/* =========================
+              1. HEADER
+          ========================== */}
+
           <Box
             sx={{
               display: "flex",
@@ -223,33 +236,40 @@ function App() {
             </IconButton>
           </Box>
 
-          {/* Dashboard statistics */}
-          <DashboardStats
-            totalTasks={totalTasks}
-            activeTasks={activeTasks}
-            completedTasks={completedTasks}
-            overdueTasks={overdueTasks}
-            tasks={tasks}
-          />
+          {/* =========================
+              2. ADD TASK
+          ========================== */}
 
-          {/* Add task form */}
           <Box
             sx={{
-              mt: 3,
-              mb: 3,
+              mt: 2,
+              mb: 4,
             }}
           >
             <TaskForm onAdd={addTask} />
           </Box>
 
-          {/* Search / Category / Sort */}
+          {/* =========================
+              3. SEARCH / CATEGORY / SORT
+          ========================== */}
+
           <Paper
             elevation={2}
             sx={{
               p: 2,
-              mb: 3,
+              mb: 4,
             }}
           >
+            <Typography
+              variant="h6"
+              sx={{
+                mb: 2,
+                fontWeight: 600,
+              }}
+            >
+              Search / Category / Sort
+            </Typography>
+
             <Box
               sx={{
                 display: "flex",
@@ -257,9 +277,11 @@ function App() {
                 flexWrap: "wrap",
               }}
             >
+
               {/* Search */}
               <TextField
                 label="Search tasks"
+                placeholder="Search by task name..."
                 value={searchTerm}
                 onChange={(e) =>
                   setSearchTerm(e.target.value)
@@ -350,80 +372,160 @@ function App() {
                   </MenuItem>
                 </Select>
               </FormControl>
+
             </Box>
           </Paper>
 
-          {/* Status filters */}
-          <Box
-            sx={{
-              display: "flex",
-              gap: 1,
-              flexWrap: "wrap",
-              mb: 3,
-            }}
-          >
-            <Button
-              variant={
-                filter === "all"
-                  ? "contained"
-                  : "outlined"
-              }
-              onClick={() => setFilter("all")}
-            >
-              All Tasks
-            </Button>
+          {/* =========================
+              4. TASKS
+          ========================== */}
 
-            <Button
-              variant={
-                filter === "active"
-                  ? "contained"
-                  : "outlined"
-              }
-              onClick={() => setFilter("active")}
-            >
-              Active
-            </Button>
+          <Box sx={{ mb: 4 }}>
 
-            <Button
-              variant={
-                filter === "completed"
-                  ? "contained"
-                  : "outlined"
-              }
-              onClick={() =>
-                setFilter("completed")
-              }
+            <Typography
+              variant="h5"
+              sx={{
+                mb: 2,
+                fontWeight: 600,
+              }}
             >
-              Completed
-            </Button>
+              Tasks
+            </Typography>
 
-            <Button
-              variant={
-                filter === "overdue"
-                  ? "contained"
-                  : "outlined"
-              }
-              onClick={() =>
-                setFilter("overdue")
-              }
-            >
-              Overdue
-            </Button>
+            <TaskList
+              tasks={filteredTasks}
+              onToggle={toggleTask}
+              onDelete={deleteTask}
+              onEdit={editTask}
+              emptyMessage="📝 No tasks yet. Create your first task!"
+            />
+
           </Box>
 
-          {/* Task list */}
-          <TaskList
-            tasks={filteredTasks}
-            onToggle={toggleTask}
-            onDelete={deleteTask}
-            onEdit={editTask}
-            emptyMessage="📝 No tasks yet. Create your first task!"
-          />
+          {/* =========================
+              5. FILTERS
+          ========================== */}
 
-          {/* Chatbot */}
+          <Box
+            sx={{
+              mb: 4,
+            }}
+          >
+
+            <Typography
+              variant="h6"
+              sx={{
+                mb: 2,
+                fontWeight: 600,
+              }}
+            >
+              Filters
+            </Typography>
+
+            <Box
+              sx={{
+                display: "flex",
+                gap: 1,
+                flexWrap: "wrap",
+              }}
+            >
+
+              {/* All */}
+              <Button
+                variant={
+                  filter === "all"
+                    ? "contained"
+                    : "outlined"
+                }
+                onClick={() =>
+                  setFilter("all")
+                }
+              >
+                All Tasks
+              </Button>
+
+              {/* Active */}
+              <Button
+                variant={
+                  filter === "active"
+                    ? "contained"
+                    : "outlined"
+                }
+                onClick={() =>
+                  setFilter("active")
+                }
+              >
+                Active
+              </Button>
+
+              {/* Completed */}
+              <Button
+                variant={
+                  filter === "completed"
+                    ? "contained"
+                    : "outlined"
+                }
+                onClick={() =>
+                  setFilter("completed")
+                }
+              >
+                Completed
+              </Button>
+
+              {/* Overdue */}
+              <Button
+                variant={
+                  filter === "overdue"
+                    ? "contained"
+                    : "outlined"
+                }
+                onClick={() =>
+                  setFilter("overdue")
+                }
+              >
+                Overdue
+              </Button>
+
+            </Box>
+
+          </Box>
+
+          {/* =========================
+              6. DASHBOARD
+          ========================== */}
+
+          <Box sx={{ mb: 5 }}>
+
+            <Typography
+              variant="h5"
+              sx={{
+                mb: 2,
+                fontWeight: 600,
+              }}
+            >
+              Dashboard
+            </Typography>
+
+            <DashboardStats
+              totalTasks={totalTasks}
+              activeTasks={activeTasks}
+              completedTasks={completedTasks}
+              overdueTasks={overdueTasks}
+              tasks={tasks}
+            />
+
+          </Box>
+
+          {/* =========================
+              CHATBOT
+          ========================== */}
+
           <Chatbot />
 
-          {/* Success notification */}
+          {/* =========================
+              SUCCESS NOTIFICATION
+          ========================== */}
+
           {successNotification && (
             <Snackbar
               open={true}
