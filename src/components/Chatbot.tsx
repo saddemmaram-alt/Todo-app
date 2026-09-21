@@ -129,11 +129,13 @@ function Chatbot() {
         borderRadius: 3,
       }}
     >
-      <Typography
-        variant="h5"
-        fontWeight="bold"
-        sx={{ mb: 2 }}
-      >
+     <Typography
+  variant="h5"
+  sx={{
+    mb: 2,
+    fontWeight: "...",
+  }}
+>
         🤖 TaskFlow Assistant
       </Typography>
 

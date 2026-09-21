@@ -1,40 +1,19 @@
-import { List, Typography } from "@mui/material";
-
+import { Box, Typography } from "@mui/material";
 import TaskItem from "./TaskItem";
 
-type Category =
-  | "University"
-  | "Work"
-  | "Personal"
-  | "Shopping"
-  | "Other";
-
-type Task = {
-  id: number;
-  text: string;
-  completed: boolean;
-  dueDate?: string | null;
-  priority: "high" | "medium" | "low";
-  category?: Category;
-};
-
-type TaskListProps = {
-  tasks: Task[];
-
+interface TaskListProps {
+  tasks: React.ComponentProps<typeof TaskItem>["task"][];
   onToggle: (id: number) => void;
-
   onDelete: (id: number) => void;
-
   onEdit?: (
     id: number,
     text: string,
-    dueDate: string,
-    priority: "high" | "medium" | "low",
-    category: Category
-  ) => void | Promise<void>;
-
+    dueDate?: string,
+    priority?: "high" | "medium" | "low",
+    category?: string
+  ) => void;
   emptyMessage?: string;
-};
+}
 
 export default function TaskList({
   tasks,
@@ -58,7 +37,7 @@ export default function TaskList({
   }
 
   return (
-    <List>
+    <Box>
       {tasks.map((task) => (
         <TaskItem
           key={task.id}
@@ -68,6 +47,6 @@ export default function TaskList({
           onEdit={onEdit}
         />
       ))}
-    </List>
+    </Box>
   );
 }
