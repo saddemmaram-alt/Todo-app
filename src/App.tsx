@@ -17,7 +17,6 @@ import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
 import DashboardStats from "./components/DashboardStats";
 import Chatbot from "./components/Chatbot";
-
 import { useTasks } from "./viewmodels/useTasks";
 
 import "./App.css";
@@ -133,6 +132,7 @@ function App() {
         activeTasks={activeTasks}
         completedTasks={completedTasks}
         overdueTasks={overdueTasks}
+        tasks={tasks}
       />
 
       {/* Add task form */}
@@ -304,7 +304,7 @@ function App() {
         onToggle={toggleTask}
         onDelete={deleteTask}
         onEdit={editTask}
-        emptyMessage=" 📝 No tasks yet. Create your first task!"
+        emptyMessage="📝 No tasks yet. Create your first task!"
       />
 
       {/* Chatbot */}
