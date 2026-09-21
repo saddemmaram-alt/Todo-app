@@ -4,6 +4,7 @@ import {
   Button,
   Container,
   FormControl,
+  IconButton,
   InputLabel,
   MenuItem,
   Paper,
@@ -13,15 +14,38 @@ import {
   Typography,
 } from "@mui/material";
 
+import { useMemo, useState } from "react";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import {
+  Brightness4,
+  Brightness7,
+} from "@mui/icons-material";
+
 import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
 import DashboardStats from "./components/DashboardStats";
 import Chatbot from "./components/Chatbot";
+
 import { useTasks } from "./viewmodels/useTasks";
 
 import "./App.css";
 
 function App() {
+  const [darkMode, setDarkMode] = useState(false);
+
+  const theme = useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode: darkMode ? "dark" : "light",
+          primary: {
+            main: "#1976d2",
+          },
+        },
+      }),
+    [darkMode]
+  );
+
   const {
     tasks,
     filteredTasks,
@@ -65,266 +89,358 @@ function App() {
    */
   if (error) {
     return (
-      <Container maxWidth="md">
-        <Typography
-          variant="h3"
-          gutterBottom
+      <ThemeProvider theme={theme}>
+        <Box
           sx={{
-            mt: 4,
+            minHeight: "100vh",
+            bgcolor: "background.default",
+            color: "text.primary",
+            transition:
+              "background-color 0.3s ease, color 0.3s ease",
           }}
         >
-          TaskFlow
-        </Typography>
+          <Container maxWidth="md">
+            {/* Theme button */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                pt: 2,
+              }}
+            >
+              <IconButton
+                onClick={() =>
+                  setDarkMode((prev) => !prev)
+                }
+                color="inherit"
+                sx={{
+                  border: "1px solid",
+                  borderColor: "divider",
+                }}
+              >
+                {darkMode ? (
+                  <Brightness7 />
+                ) : (
+                  <Brightness4 />
+                )}
+              </IconButton>
+            </Box>
 
-        <Typography
-          variant="subtitle1"
-          sx={{
-            mb: 4,
-          }}
-        >
-          Manage your tasks easily
-        </Typography>
+            <Typography
+              variant="h3"
+              gutterBottom
+              sx={{
+                mt: 2,
+              }}
+            >
+              TaskFlow
+            </Typography>
 
-        <Alert
-          severity="error"
-          sx={{
-            mb: 2,
-          }}
-        >
-          {error}
-        </Alert>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                mb: 4,
+              }}
+            >
+              Manage your tasks easily
+            </Typography>
 
-        <Button
-          variant="contained"
-          onClick={retryLoadTasks}
-        >
-          Try Again
-        </Button>
-      </Container>
+            <Alert
+              severity="error"
+              sx={{
+                mb: 2,
+              }}
+            >
+              {error}
+            </Alert>
+
+            <Button
+              variant="contained"
+              onClick={retryLoadTasks}
+            >
+              Try Again
+            </Button>
+          </Container>
+        </Box>
+      </ThemeProvider>
     );
   }
 
   return (
-    <Container maxWidth="md">
-      {/* Header */}
-      <Typography
-        variant="h3"
-        gutterBottom
-        sx={{
-          mt: 4,
-        }}
-      >
-        TaskFlow
-      </Typography>
-
-      <Typography
-        variant="subtitle1"
-        sx={{
-          mb: 3,
-        }}
-      >
-        Manage your tasks easily
-      </Typography>
-
-      {/* Dashboard statistics */}
-      <DashboardStats
-        totalTasks={totalTasks}
-        activeTasks={activeTasks}
-        completedTasks={completedTasks}
-        overdueTasks={overdueTasks}
-        tasks={tasks}
-      />
-
-      {/* Add task form */}
+    <ThemeProvider theme={theme}>
       <Box
         sx={{
-          mt: 3,
-          mb: 3,
+          minHeight: "100vh",
+          bgcolor: "background.default",
+          color: "text.primary",
+          transition:
+            "background-color 0.3s ease, color 0.3s ease",
         }}
       >
-        <TaskForm onAdd={addTask} />
-      </Box>
+        <Container maxWidth="md">
 
-      {/* Search / Category / Sort */}
-      <Paper
-        elevation={2}
-        sx={{
-          p: 2,
-          mb: 3,
-        }}
-      >
-        <Box
-          sx={{
-            display: "flex",
-            gap: 2,
-            flexWrap: "wrap",
-          }}
-        >
-          {/* Search */}
-          <TextField
-            label="Search tasks"
-            value={searchTerm}
-            onChange={(e) =>
-              setSearchTerm(e.target.value)
-            }
-            size="small"
+          {/* Header */}
+          <Box
             sx={{
-              flex: 1,
-              minWidth: 200,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mt: 3,
+              mb: 3,
             }}
+          >
+            <Box>
+              <Typography
+                variant="h3"
+                gutterBottom
+              >
+                TaskFlow
+              </Typography>
+
+              <Typography variant="subtitle1">
+                Manage your tasks easily
+              </Typography>
+            </Box>
+
+            {/* Light / Dark Mode */}
+            <IconButton
+              onClick={() =>
+                setDarkMode((prev) => !prev)
+              }
+              color="inherit"
+              sx={{
+                border: "1px solid",
+                borderColor: "divider",
+                width: 45,
+                height: 45,
+              }}
+            >
+              {darkMode ? (
+                <Brightness7 />
+              ) : (
+                <Brightness4 />
+              )}
+            </IconButton>
+          </Box>
+
+          {/* Dashboard statistics */}
+          <DashboardStats
+            totalTasks={totalTasks}
+            activeTasks={activeTasks}
+            completedTasks={completedTasks}
+            overdueTasks={overdueTasks}
+            tasks={tasks}
           />
 
-          {/* Category */}
-          <FormControl
-            size="small"
+          {/* Add task form */}
+          <Box
             sx={{
-              minWidth: 160,
+              mt: 3,
+              mb: 3,
             }}
           >
-            <InputLabel>Category</InputLabel>
+            <TaskForm onAdd={addTask} />
+          </Box>
 
-            <Select
-              value={categoryFilter}
-              label="Category"
-              onChange={(e) =>
-                setCategoryFilter(e.target.value)
-              }
-            >
-              <MenuItem value="all">
-                All Categories
-              </MenuItem>
-
-              <MenuItem value="University">
-                🎓 University
-              </MenuItem>
-
-              <MenuItem value="Work">
-                💼 Work
-              </MenuItem>
-
-              <MenuItem value="Personal">
-                👤 Personal
-              </MenuItem>
-            </Select>
-          </FormControl>
-
-          {/* Sort */}
-          <FormControl
-            size="small"
+          {/* Search / Category / Sort */}
+          <Paper
+            elevation={2}
             sx={{
-              minWidth: 160,
+              p: 2,
+              mb: 3,
             }}
           >
-            <InputLabel>Sort</InputLabel>
+            <Box
+              sx={{
+                display: "flex",
+                gap: 2,
+                flexWrap: "wrap",
+              }}
+            >
+              {/* Search */}
+              <TextField
+                label="Search tasks"
+                value={searchTerm}
+                onChange={(e) =>
+                  setSearchTerm(e.target.value)
+                }
+                size="small"
+                sx={{
+                  flex: 1,
+                  minWidth: 200,
+                }}
+              />
 
-            <Select
-              value={sortBy}
-              label="Sort"
-              onChange={(e) =>
-                setSortBy(e.target.value)
+              {/* Category */}
+              <FormControl
+                size="small"
+                sx={{
+                  minWidth: 160,
+                }}
+              >
+                <InputLabel>
+                  Category
+                </InputLabel>
+
+                <Select
+                  value={categoryFilter}
+                  label="Category"
+                  onChange={(e) =>
+                    setCategoryFilter(e.target.value)
+                  }
+                >
+                  <MenuItem value="all">
+                    All Categories
+                  </MenuItem>
+
+                  <MenuItem value="University">
+                    🎓 University
+                  </MenuItem>
+
+                  <MenuItem value="Work">
+                    💼 Work
+                  </MenuItem>
+
+                  <MenuItem value="Personal">
+                    👤 Personal
+                  </MenuItem>
+
+                  <MenuItem value="Shopping">
+                    🛒 Shopping
+                  </MenuItem>
+
+                  <MenuItem value="Other">
+                    📌 Other
+                  </MenuItem>
+                </Select>
+              </FormControl>
+
+              {/* Sort */}
+              <FormControl
+                size="small"
+                sx={{
+                  minWidth: 160,
+                }}
+              >
+                <InputLabel>
+                  Sort
+                </InputLabel>
+
+                <Select
+                  value={sortBy}
+                  label="Sort"
+                  onChange={(e) =>
+                    setSortBy(e.target.value)
+                  }
+                >
+                  <MenuItem value="newest">
+                    Newest
+                  </MenuItem>
+
+                  <MenuItem value="oldest">
+                    Oldest
+                  </MenuItem>
+
+                  <MenuItem value="priority">
+                    Priority
+                  </MenuItem>
+
+                  <MenuItem value="dueDate">
+                    Due Date
+                  </MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+          </Paper>
+
+          {/* Status filters */}
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              flexWrap: "wrap",
+              mb: 3,
+            }}
+          >
+            <Button
+              variant={
+                filter === "all"
+                  ? "contained"
+                  : "outlined"
+              }
+              onClick={() => setFilter("all")}
+            >
+              All Tasks
+            </Button>
+
+            <Button
+              variant={
+                filter === "active"
+                  ? "contained"
+                  : "outlined"
+              }
+              onClick={() => setFilter("active")}
+            >
+              Active
+            </Button>
+
+            <Button
+              variant={
+                filter === "completed"
+                  ? "contained"
+                  : "outlined"
+              }
+              onClick={() =>
+                setFilter("completed")
               }
             >
-              <MenuItem value="newest">
-                Newest
-              </MenuItem>
+              Completed
+            </Button>
 
-              <MenuItem value="oldest">
-                Oldest
-              </MenuItem>
+            <Button
+              variant={
+                filter === "overdue"
+                  ? "contained"
+                  : "outlined"
+              }
+              onClick={() =>
+                setFilter("overdue")
+              }
+            >
+              Overdue
+            </Button>
+          </Box>
 
-              <MenuItem value="priority">
-                Priority
-              </MenuItem>
+          {/* Task list */}
+          <TaskList
+            tasks={filteredTasks}
+            onToggle={toggleTask}
+            onDelete={deleteTask}
+            onEdit={editTask}
+            emptyMessage="📝 No tasks yet. Create your first task!"
+          />
 
-              <MenuItem value="dueDate">
-                Due Date
-              </MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-      </Paper>
+          {/* Chatbot */}
+          <Chatbot />
 
-      {/* Status filters */}
-      <Box
-        sx={{
-          display: "flex",
-          gap: 1,
-          flexWrap: "wrap",
-          mb: 3,
-        }}
-      >
-        <Button
-          variant={
-            filter === "all"
-              ? "contained"
-              : "outlined"
-          }
-          onClick={() => setFilter("all")}
-        >
-          All Tasks
-        </Button>
+          {/* Success notification */}
+          {successNotification && (
+            <Snackbar
+              open={true}
+              autoHideDuration={3000}
+            >
+              <Alert
+                severity="success"
+                variant="filled"
+              >
+                {successNotification.message}
+              </Alert>
+            </Snackbar>
+          )}
 
-        <Button
-          variant={
-            filter === "active"
-              ? "contained"
-              : "outlined"
-          }
-          onClick={() => setFilter("active")}
-        >
-          Active
-        </Button>
-
-        <Button
-          variant={
-            filter === "completed"
-              ? "contained"
-              : "outlined"
-          }
-          onClick={() => setFilter("completed")}
-        >
-          Completed
-        </Button>
-
-        <Button
-          variant={
-            filter === "overdue"
-              ? "contained"
-              : "outlined"
-          }
-          onClick={() => setFilter("overdue")}
-        >
-          Overdue
-        </Button>
+        </Container>
       </Box>
-
-      {/* Task list */}
-      <TaskList
-        tasks={filteredTasks}
-        onToggle={toggleTask}
-        onDelete={deleteTask}
-        onEdit={editTask}
-        emptyMessage="📝 No tasks yet. Create your first task!"
-      />
-
-      {/* Chatbot */}
-      <Chatbot />
-
-      {/* Success notification */}
-      {successNotification && (
-        <Snackbar
-          open={true}
-          autoHideDuration={3000}
-        >
-          <Alert
-            severity="success"
-            variant="filled"
-          >
-            {successNotification.message}
-          </Alert>
-        </Snackbar>
-      )}
-    </Container>
+    </ThemeProvider>
   );
 }
 
