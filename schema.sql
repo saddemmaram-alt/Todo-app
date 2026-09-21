@@ -16,3 +16,10 @@ ON tasks(user_id);
 
 CREATE INDEX IF NOT EXISTS idx_users_email
 ON users(email);
+CREATE TABLE IF NOT EXISTS task_reminders (
+  id SERIAL PRIMARY KEY,
+  task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+  reminder_type VARCHAR(20) NOT NULL,
+  sent_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(task_id, reminder_type)
+);

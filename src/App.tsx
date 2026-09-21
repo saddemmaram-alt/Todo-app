@@ -1,52 +1,25 @@
-import { useMemo, useState } from "react";
-
 import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
   Container,
-  CssBaseline,
-  FormControl,
-  IconButton,
-  InputLabel,
-  MenuItem,
   Paper,
-  Select,
-  Snackbar,
-  TextField,
-  ThemeProvider,
   Typography,
-  createTheme,
+  Box,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
-
-import DarkModeIcon from "@mui/icons-material/DarkMode";
-import LightModeIcon from "@mui/icons-material/LightMode";
 
 import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
 import DashboardStats from "./components/DashboardStats";
+import Chatbot from "./components/Chatbot";
 
 import { useTasks } from "./viewmodels/useTasks";
 
 import "./App.css";
 
 function App() {
-  const [darkMode, setDarkMode] =
-    useState(false);
-
-  const theme = useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode: darkMode
-            ? "dark"
-            : "light",
-        },
-      }),
-    [darkMode]
-  );
-
   const {
     tasks,
     filteredTasks,
@@ -63,471 +36,324 @@ function App() {
     sortBy,
     setSortBy,
 
-    isLoading,
-    error,
-    retryLoadTasks,
-
-    successNotification,
-
     addTask,
     editTask,
     toggleTask,
     deleteTask,
   } = useTasks();
 
-  const [
-    snackbarOpen,
-    setSnackbarOpen,
-  ] = useState(false);
-
-  const [
-    snackbarMessage,
-    setSnackbarMessage,
-  ] = useState("");
-
-  useMemo(() => {
-    if (successNotification) {
-      setSnackbarMessage(
-        successNotification.message
-      );
-
-      setSnackbarOpen(true);
-    }
-  }, [successNotification]);
-
   const totalTasks = tasks.length;
-
-  const activeTasks = tasks.filter(
-    (task) => !task.completed
-  ).length;
 
   const completedTasks = tasks.filter(
     (task) => task.completed
   ).length;
 
+  const activeTasks = tasks.filter(
+    (task) => !task.completed
+  ).length;
+
+  const today = new Date()
+    .toISOString()
+    .split("T")[0];
+
   const overdueTasks = tasks.filter(
     (task) =>
       !task.completed &&
-      task.dueDate !== null &&
-      new Date(task.dueDate) <
-        new Date()
+      task.dueDate &&
+      task.dueDate < today
   ).length;
 
-  const hasNoTasks = tasks.length === 0;
-
-  const hasNoMatchingTasks =
-    tasks.length > 0 &&
-    filteredTasks.length === 0;
-
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <Container
+      maxWidth="md"
+      sx={{ py: 4 }}
+    >
+      {/* Header */}
 
-      <Container
-        maxWidth="md"
+      <Typography
+        variant="h3"
+        fontWeight="bold"
+        textAlign="center"
+        gutterBottom
+      >
+        TaskFlow
+      </Typography>
+
+      <Typography
+        variant="subtitle1"
+        textAlign="center"
+        color="text.secondary"
+        sx={{ mb: 4 }}
+      >
+        Manage your tasks easily
+      </Typography>
+
+      {/* Dashboard Statistics */}
+
+      <DashboardStats
+        totalTasks={totalTasks}
+        activeTasks={activeTasks}
+        completedTasks={completedTasks}
+        overdueTasks={overdueTasks}
+        tasks={tasks}
+      />
+
+      {/* Task Form */}
+
+      <Paper
+        elevation={3}
         sx={{
-          px: {
-            xs: 1.5,
-            sm: 2,
-          },
+          p: 3,
+          mb: 3,
+          borderRadius: 3,
         }}
       >
-        <Paper
-          elevation={4}
+        <TaskForm onAdd={addTask} />
+      </Paper>
+
+      {/* Search + Filters + Sort */}
+
+      <Paper
+        elevation={3}
+        sx={{
+          p: 3,
+          mb: 3,
+          borderRadius: 3,
+        }}
+      >
+        <Typography
+          variant="h6"
+          fontWeight="bold"
+          sx={{ mb: 2 }}
+        >
+          Find and organize your tasks
+        </Typography>
+
+        <Box
           sx={{
-            mt: {
-              xs: 2,
-              sm: 6,
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              sm: "2fr 1fr 1fr",
             },
-            p: {
-              xs: 2,
-              sm: 4,
-            },
-            borderRadius: {
-              xs: 2,
-              sm: 3,
-            },
-            position: "relative",
+            gap: 2,
           }}
         >
-          {/* Theme button */}
-          <Box
-            sx={{
-              position: "absolute",
-              top: {
-                xs: 8,
-                sm: 12,
-              },
-              right: {
-                xs: 8,
-                sm: 12,
-              },
-            }}
-          >
-            <IconButton
-              onClick={() =>
-                setDarkMode(
-                  (current) => !current
+          {/* Search */}
+
+          <TextField
+            label="Search tasks"
+            placeholder="Search by task name..."
+            value={searchTerm}
+            onChange={(event) =>
+              setSearchTerm(event.target.value)
+            }
+            fullWidth
+          />
+
+          {/* Category */}
+
+          <FormControl fullWidth>
+            <InputLabel>
+              Category
+            </InputLabel>
+
+            <Select
+              value={categoryFilter}
+              label="Category"
+              onChange={(event) =>
+                setCategoryFilter(
+                  event.target.value as
+                    | "all"
+                    | "University"
+                    | "Work"
+                    | "Personal"
+                    | "Shopping"
+                    | "Other"
                 )
               }
-              aria-label={
-                darkMode
-                  ? "Switch to light mode"
-                  : "Switch to dark mode"
+            >
+              <MenuItem value="all">
+                All Categories
+              </MenuItem>
+
+              <MenuItem value="University">
+                University
+              </MenuItem>
+
+              <MenuItem value="Work">
+                Work
+              </MenuItem>
+
+              <MenuItem value="Personal">
+                Personal
+              </MenuItem>
+
+              <MenuItem value="Shopping">
+                Shopping
+              </MenuItem>
+
+              <MenuItem value="Other">
+                Other
+              </MenuItem>
+            </Select>
+          </FormControl>
+
+          {/* Sort */}
+
+          <FormControl fullWidth>
+            <InputLabel>
+              Sort by
+            </InputLabel>
+
+            <Select
+              value={sortBy}
+              label="Sort by"
+              onChange={(event) =>
+                setSortBy(
+                  event.target.value as
+                    | "default"
+                    | "priority-high"
+                    | "priority-low"
+                    | "due-date"
+                    | "alphabetical"
+                )
               }
             >
-              {darkMode ? (
-                <LightModeIcon />
-              ) : (
-                <DarkModeIcon />
-              )}
-            </IconButton>
-          </Box>
+              <MenuItem value="default">
+                Default
+              </MenuItem>
 
-          <Typography
-            variant="h3"
-            component="h1"
-            align="center"
-            gutterBottom
-            sx={{
-              fontSize: {
-                xs: "2rem",
-                sm: "3rem",
-              },
-              pr: {
-                xs: 4,
-                sm: 0,
-              },
-            }}
-          >
-            TaskFlow
-          </Typography>
+              <MenuItem value="priority-high">
+                Priority: High → Low
+              </MenuItem>
 
-          <Typography
-            variant="body1"
-            align="center"
-            sx={{ mb: 3 }}
-          >
-            Manage your tasks easily
-          </Typography>
+              <MenuItem value="priority-low">
+                Priority: Low → High
+              </MenuItem>
 
-          {isLoading ? (
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                py: 8,
-                gap: 2,
-              }}
-            >
-              <CircularProgress />
+              <MenuItem value="due-date">
+                Due Date
+              </MenuItem>
 
-              <Typography>
-                Loading tasks...
-              </Typography>
-            </Box>
-          ) : error ? (
-            <Box sx={{ py: 4 }}>
-              <Alert
-                severity="error"
-                sx={{ mb: 2 }}
-              >
-                {error}
-              </Alert>
+              <MenuItem value="alphabetical">
+                Alphabetical
+              </MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
 
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                }}
-              >
-                <Button
-                  variant="contained"
-                  onClick={retryLoadTasks}
-                >
-                  Try Again
-                </Button>
-              </Box>
-            </Box>
-          ) : (
-            <>
-              <DashboardStats
-                totalTasks={totalTasks}
-                activeTasks={activeTasks}
-                completedTasks={
-                  completedTasks
-                }
-                overdueTasks={
-                  overdueTasks
-                }
-                tasks={tasks}
-              />
+        {/* Status Filters */}
 
-              <TaskForm onAdd={addTask} />
-
-              <TextField
-                fullWidth
-                label="Search tasks"
-                placeholder="Search by task name..."
-                value={searchTerm}
-                onChange={(event) =>
-                  setSearchTerm(
-                    event.target.value
-                  )
-                }
-                sx={{ mb: 3 }}
-              />
-
-              <Typography
-                variant="h6"
-                sx={{ mb: 1 }}
-              >
-                Status
-              </Typography>
-
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 1,
-                  mb: 3,
-                  flexWrap: "wrap",
-                }}
-              >
-                <Button
-                  sx={{
-                    flex: {
-                      xs: "1 1 calc(50% - 8px)",
-                      sm: "0 1 auto",
-                    },
-                  }}
-                  variant={
-                    filter === "all"
-                      ? "contained"
-                      : "outlined"
-                  }
-                  onClick={() =>
-                    setFilter("all")
-                  }
-                >
-                  All Tasks
-                </Button>
-
-                <Button
-                  sx={{
-                    flex: {
-                      xs: "1 1 calc(50% - 8px)",
-                      sm: "0 1 auto",
-                    },
-                  }}
-                  variant={
-                    filter === "active"
-                      ? "contained"
-                      : "outlined"
-                  }
-                  onClick={() =>
-                    setFilter("active")
-                  }
-                >
-                  Active
-                </Button>
-
-                <Button
-                  sx={{
-                    flex: {
-                      xs: "1 1 calc(50% - 8px)",
-                      sm: "0 1 auto",
-                    },
-                  }}
-                  variant={
-                    filter === "completed"
-                      ? "contained"
-                      : "outlined"
-                  }
-                  onClick={() =>
-                    setFilter("completed")
-                  }
-                >
-                  Completed
-                </Button>
-
-                <Button
-                  sx={{
-                    flex: {
-                      xs: "1 1 calc(50% - 8px)",
-                      sm: "0 1 auto",
-                    },
-                  }}
-                  variant={
-                    filter === "overdue"
-                      ? "contained"
-                      : "outlined"
-                  }
-                  onClick={() =>
-                    setFilter("overdue")
-                  }
-                >
-                  Overdue
-                </Button>
-              </Box>
-
-              <Typography
-                variant="h6"
-                sx={{ mb: 1 }}
-              >
-                Categories
-              </Typography>
-
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 1,
-                  flexWrap: "wrap",
-                  mb: 3,
-                }}
-              >
-                {[
-                  {
-                    value: "all" as const,
-                    label: "All",
-                  },
-                  {
-                    value:
-                      "University" as const,
-                    label: "🎓 University",
-                  },
-                  {
-                    value: "Work" as const,
-                    label: "💼 Work",
-                  },
-                  {
-                    value:
-                      "Personal" as const,
-                    label: "👤 Personal",
-                  },
-                  {
-                    value:
-                      "Shopping" as const,
-                    label: "🛒 Shopping",
-                  },
-                  {
-                    value: "Other" as const,
-                    label: "📌 Other",
-                  },
-                ].map((category) => (
-                  <Button
-                    key={category.value}
-                    sx={{
-                      flex: {
-                        xs: "1 1 calc(50% - 8px)",
-                        sm: "0 1 auto",
-                      },
-                    }}
-                    variant={
-                      categoryFilter ===
-                      category.value
-                        ? "contained"
-                        : "outlined"
-                    }
-                    onClick={() =>
-                      setCategoryFilter(
-                        category.value
-                      )
-                    }
-                  >
-                    {category.label}
-                  </Button>
-                ))}
-              </Box>
-
-              <FormControl
-                fullWidth
-                sx={{ mb: 3 }}
-              >
-                <InputLabel>
-                  Sort tasks
-                </InputLabel>
-
-                <Select
-                  value={sortBy}
-                  label="Sort tasks"
-                  onChange={(event) =>
-                    setSortBy(
-                      event.target
-                        .value as
-                        | "default"
-                        | "priority-high"
-                        | "priority-low"
-                        | "due-date"
-                        | "alphabetical"
-                    )
-                  }
-                >
-                  <MenuItem value="default">
-                    Default order
-                  </MenuItem>
-
-                  <MenuItem value="priority-high">
-                    Priority: High → Low
-                  </MenuItem>
-
-                  <MenuItem value="priority-low">
-                    Priority: Low → High
-                  </MenuItem>
-
-                  <MenuItem value="due-date">
-                    Due date
-                  </MenuItem>
-
-                  <MenuItem value="alphabetical">
-                    Alphabetical A → Z
-                  </MenuItem>
-                </Select>
-              </FormControl>
-
-              <Box sx={{ mt: 2 }}>
-                <TaskList
-                  tasks={filteredTasks}
-                  onToggle={toggleTask}
-                  onDelete={deleteTask}
-                  onEdit={editTask}
-                  emptyMessage={
-                    hasNoTasks
-                      ? "📝 No tasks yet. Create your first task!"
-                      : hasNoMatchingTasks
-                        ? "🔍 No matching tasks. Try changing your search or filters."
-                        : "No tasks yet"
-                  }
-                />
-              </Box>
-            </>
-          )}
-        </Paper>
-
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={3000}
-          onClose={() =>
-            setSnackbarOpen(false)
-          }
-          anchorOrigin={{
-            vertical: "bottom",
-            horizontal: "right",
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            flexWrap: "wrap",
+            mt: 3,
           }}
         >
-          <Alert
-            severity="success"
-            variant="filled"
-            onClose={() =>
-              setSnackbarOpen(false)
+          <Typography
+            variant="body2"
+            sx={{
+              alignSelf: "center",
+              mr: 1,
+              fontWeight: "bold",
+            }}
+          >
+            Status:
+          </Typography>
+
+          <button
+            type="button"
+            onClick={() => setFilter("all")}
+            className={
+              filter === "all"
+                ? "filter-button active"
+                : "filter-button"
             }
           >
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
-      </Container>
-    </ThemeProvider>
+            All Tasks
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setFilter("active")}
+            className={
+              filter === "active"
+                ? "filter-button active"
+                : "filter-button"
+            }
+          >
+            Active
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              setFilter("completed")
+            }
+            className={
+              filter === "completed"
+                ? "filter-button active"
+                : "filter-button"
+            }
+          >
+            Completed
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setFilter("overdue")}
+            className={
+              filter === "overdue"
+                ? "filter-button active"
+                : "filter-button"
+            }
+          >
+            Overdue
+          </button>
+        </Box>
+      </Paper>
+
+      {/* Task List */}
+
+      <Paper
+        elevation={3}
+        sx={{
+          p: 3,
+          borderRadius: 3,
+        }}
+      >
+        <Typography
+          variant="h6"
+          fontWeight="bold"
+          sx={{ mb: 2 }}
+        >
+          My Tasks
+        </Typography>
+
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ mb: 2 }}
+        >
+          Showing {filteredTasks.length} of{" "}
+          {tasks.length} task(s)
+        </Typography>
+
+        <TaskList
+          tasks={filteredTasks}
+          onToggle={toggleTask}
+          onDelete={deleteTask}
+          onEdit={editTask}
+        />
+      </Paper>
+
+      {/* Chatbot */}
+
+      <Chatbot />
+    </Container>
   );
 }
 

@@ -3,25 +3,18 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 
-const swaggerUi =
-  require("swagger-ui-express");
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./swagger");
 
-const swaggerSpec =
-  require("./swagger");
+const tasksRouter = require("./routes/tasks");
+const authRouter = require("./routes/auth");
+const chatbotRouter = require("./routes/chatbot");
 
-const tasksRouter =
-  require("./routes/tasks");
-
-const authRouter =
-  require("./routes/auth");
-
-const errorHandler =
-  require("./middleware/errorHandler");
+const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 
 app.use(cors());
-
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -36,6 +29,11 @@ app.use(
 app.use(
   "/tasks",
   tasksRouter
+);
+
+app.use(
+  "/chatbot",
+  chatbotRouter
 );
 
 app.use(

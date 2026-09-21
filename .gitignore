@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 coverage/
 .env
+server/getRefreshToken.js
+server/testEmail.js
+server/testGmailAuth.js
