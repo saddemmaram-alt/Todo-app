@@ -2,8 +2,8 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-
 const swaggerUi = require("swagger-ui-express");
+
 const swaggerSpec = require("./swagger");
 
 const tasksRouter = require("./routes/tasks");
@@ -15,6 +15,7 @@ const errorHandler = require("./middleware/errorHandler");
 const app = express();
 
 app.use(cors());
+
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -25,6 +26,17 @@ app.use(
   "/auth",
   authRouter
 );
+
+// 🔍 TEMPORARY DEBUG LOG
+app.use((req, res, next) => {
+  console.log(
+    "🌐 BACKEND REQUEST:",
+    req.method,
+    req.originalUrl
+  );
+
+  next();
+});
 
 app.use(
   "/tasks",

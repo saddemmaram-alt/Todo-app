@@ -13,6 +13,7 @@ describe("useTasks", () => {
 
   it("loads tasks", async () => {
     (globalThis.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
       json: async () => [
         {
           id: 1,
@@ -39,9 +40,11 @@ describe("useTasks", () => {
   it("adds a task", async () => {
     (globalThis.fetch as jest.Mock)
       .mockResolvedValueOnce({
+        ok: true,
         json: async () => [],
       })
       .mockResolvedValueOnce({
+        ok: true,
         json: async () => ({
           id: 2,
           text: "Learn Jest",
@@ -81,6 +84,7 @@ describe("useTasks", () => {
   it("toggles a task", async () => {
     (globalThis.fetch as jest.Mock)
       .mockResolvedValueOnce({
+        ok: true,
         json: async () => [
           {
             id: 1,
@@ -93,6 +97,7 @@ describe("useTasks", () => {
         ],
       })
       .mockResolvedValueOnce({
+        ok: true,
         json: async () => ({
           id: 1,
           text: "Learn React",
@@ -121,6 +126,7 @@ describe("useTasks", () => {
   it("deletes a task", async () => {
     (globalThis.fetch as jest.Mock)
       .mockResolvedValueOnce({
+        ok: true,
         json: async () => [
           {
             id: 1,
@@ -132,7 +138,9 @@ describe("useTasks", () => {
           },
         ],
       })
-      .mockResolvedValueOnce({});
+      .mockResolvedValueOnce({
+        ok: true,
+      });
 
     const { result } = renderHook(() => useTasks());
 
@@ -149,6 +157,7 @@ describe("useTasks", () => {
 
   it("filters tasks by search term", async () => {
     (globalThis.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
       json: async () => [
         {
           id: 1,
@@ -187,7 +196,9 @@ describe("useTasks", () => {
       result.current.setSearchTerm("react");
     });
 
-    expect(result.current.filteredTasks).toHaveLength(2);
+    expect(
+      result.current.filteredTasks
+    ).toHaveLength(2);
 
     expect(
       result.current.filteredTasks.map(
@@ -201,6 +212,7 @@ describe("useTasks", () => {
 
   it("filters tasks by category", async () => {
     (globalThis.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
       json: async () => [
         {
           id: 1,
@@ -241,7 +253,9 @@ describe("useTasks", () => {
       );
     });
 
-    expect(result.current.filteredTasks).toHaveLength(1);
+    expect(
+      result.current.filteredTasks
+    ).toHaveLength(1);
 
     expect(
       result.current.filteredTasks[0].text
@@ -250,6 +264,7 @@ describe("useTasks", () => {
 
   it("combines search and category filters", async () => {
     (globalThis.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
       json: async () => [
         {
           id: 1,
@@ -291,7 +306,9 @@ describe("useTasks", () => {
       );
     });
 
-    expect(result.current.filteredTasks).toHaveLength(2);
+    expect(
+      result.current.filteredTasks
+    ).toHaveLength(2);
 
     expect(
       result.current.filteredTasks.map(
@@ -305,6 +322,7 @@ describe("useTasks", () => {
 
   it("sorts tasks by priority from high to low", async () => {
     (globalThis.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
       json: async () => [
         {
           id: 1,
@@ -356,6 +374,7 @@ describe("useTasks", () => {
 
   it("sorts tasks by priority from low to high", async () => {
     (globalThis.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
       json: async () => [
         {
           id: 1,
@@ -407,6 +426,7 @@ describe("useTasks", () => {
 
   it("sorts tasks by due date", async () => {
     (globalThis.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
       json: async () => [
         {
           id: 1,
@@ -458,6 +478,7 @@ describe("useTasks", () => {
 
   it("sorts tasks alphabetically", async () => {
     (globalThis.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
       json: async () => [
         {
           id: 1,
@@ -509,6 +530,7 @@ describe("useTasks", () => {
 
   it("filters completed tasks", async () => {
     (globalThis.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
       json: async () => [
         {
           id: 1,
@@ -539,7 +561,9 @@ describe("useTasks", () => {
       result.current.setFilter("completed");
     });
 
-    expect(result.current.filteredTasks).toHaveLength(1);
+    expect(
+      result.current.filteredTasks
+    ).toHaveLength(1);
 
     expect(
       result.current.filteredTasks[0].text
@@ -547,9 +571,9 @@ describe("useTasks", () => {
   });
 
   it("shows loading while tasks are being fetched", async () => {
-    let resolveFetch!: (value: {
-      json: () => Promise<unknown>;
-    }) => void;
+    let resolveFetch!: (
+      value: Response
+    ) => void;
 
     (globalThis.fetch as jest.Mock).mockReturnValueOnce(
       new Promise((resolve) => {
@@ -563,8 +587,9 @@ describe("useTasks", () => {
 
     await act(async () => {
       resolveFetch({
+        ok: true,
         json: async () => [],
-      });
+      } as Response);
     });
 
     await waitFor(() => {

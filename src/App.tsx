@@ -108,7 +108,6 @@ function App() {
           }}
         >
           <Container maxWidth="md">
-
             {/* Theme button */}
             <Box
               sx={{
@@ -169,7 +168,6 @@ function App() {
             >
               Try Again
             </Button>
-
           </Container>
         </Box>
       </ThemeProvider>
@@ -188,10 +186,9 @@ function App() {
         }}
       >
         <Container maxWidth="md">
-
           {/* =========================
               1. HEADER
-          ========================== */}
+              ========================== */}
 
           <Box
             sx={{
@@ -238,7 +235,7 @@ function App() {
 
           {/* =========================
               2. ADD TASK
-          ========================== */}
+              ========================== */}
 
           <Box
             sx={{
@@ -251,7 +248,7 @@ function App() {
 
           {/* =========================
               3. SEARCH / CATEGORY / SORT
-          ========================== */}
+              ========================== */}
 
           <Paper
             elevation={2}
@@ -277,8 +274,8 @@ function App() {
                 flexWrap: "wrap",
               }}
             >
-
               {/* Search */}
+
               <TextField
                 label="Search tasks"
                 placeholder="Search by task name..."
@@ -294,6 +291,7 @@ function App() {
               />
 
               {/* Category */}
+
               <FormControl
                 size="small"
                 sx={{
@@ -308,7 +306,9 @@ function App() {
                   value={categoryFilter}
                   label="Category"
                   onChange={(e) =>
-                    setCategoryFilter(e.target.value)
+                    setCategoryFilter(
+                      e.target.value
+                    )
                   }
                 >
                   <MenuItem value="all">
@@ -338,6 +338,7 @@ function App() {
               </FormControl>
 
               {/* Sort */}
+
               <FormControl
                 size="small"
                 sx={{
@@ -352,36 +353,40 @@ function App() {
                   value={sortBy}
                   label="Sort"
                   onChange={(e) =>
-                    setSortBy(e.target.value)
+                    setSortBy(
+                      e.target.value as typeof sortBy
+                    )
                   }
                 >
-                  <MenuItem value="newest">
-                    Newest
+                  <MenuItem value="default">
+                    Default
                   </MenuItem>
 
-                  <MenuItem value="oldest">
-                    Oldest
+                  <MenuItem value="priority-high">
+                    High Priority
                   </MenuItem>
 
-                  <MenuItem value="priority">
-                    Priority
+                  <MenuItem value="priority-low">
+                    Low Priority
                   </MenuItem>
 
-                  <MenuItem value="dueDate">
+                  <MenuItem value="due-date">
                     Due Date
+                  </MenuItem>
+
+                  <MenuItem value="alphabetical">
+                    Alphabetical
                   </MenuItem>
                 </Select>
               </FormControl>
-
             </Box>
           </Paper>
 
           {/* =========================
               4. TASKS
-          ========================== */}
+              ========================== */}
 
           <Box sx={{ mb: 4 }}>
-
             <Typography
               variant="h5"
               sx={{
@@ -399,19 +404,17 @@ function App() {
               onEdit={editTask}
               emptyMessage="📝 No tasks yet. Create your first task!"
             />
-
           </Box>
 
           {/* =========================
               5. FILTERS
-          ========================== */}
+              ========================== */}
 
           <Box
             sx={{
               mb: 4,
             }}
           >
-
             <Typography
               variant="h6"
               sx={{
@@ -429,8 +432,8 @@ function App() {
                 flexWrap: "wrap",
               }}
             >
-
               {/* All */}
+
               <Button
                 variant={
                   filter === "all"
@@ -445,6 +448,7 @@ function App() {
               </Button>
 
               {/* Active */}
+
               <Button
                 variant={
                   filter === "active"
@@ -459,6 +463,7 @@ function App() {
               </Button>
 
               {/* Completed */}
+
               <Button
                 variant={
                   filter === "completed"
@@ -473,6 +478,7 @@ function App() {
               </Button>
 
               {/* Overdue */}
+
               <Button
                 variant={
                   filter === "overdue"
@@ -485,17 +491,14 @@ function App() {
               >
                 Overdue
               </Button>
-
             </Box>
-
           </Box>
 
           {/* =========================
               6. DASHBOARD
-          ========================== */}
+              ========================== */}
 
           <Box sx={{ mb: 5 }}>
-
             <Typography
               variant="h5"
               sx={{
@@ -513,18 +516,17 @@ function App() {
               overdueTasks={overdueTasks}
               tasks={tasks}
             />
-
           </Box>
 
           {/* =========================
               CHATBOT
-          ========================== */}
+              ========================== */}
 
           <Chatbot />
 
           {/* =========================
               SUCCESS NOTIFICATION
-          ========================== */}
+              ========================== */}
 
           {successNotification && (
             <Snackbar
@@ -539,7 +541,6 @@ function App() {
               </Alert>
             </Snackbar>
           )}
-
         </Container>
       </Box>
     </ThemeProvider>

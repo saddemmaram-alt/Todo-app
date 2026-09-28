@@ -1,16 +1,7 @@
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
+import { getToken } from "../services/authService";
 
-import {
-  getToken,
-} from "../services/authService";
-
-type Priority =
-  | "high"
-  | "medium"
-  | "low";
+type Priority = "high" | "medium" | "low";
 
 export type Category =
   | "University"
@@ -28,15 +19,9 @@ interface Task {
   category?: Category;
 }
 
-type TaskFilter =
-  | "all"
-  | "active"
-  | "completed"
-  | "overdue";
+type TaskFilter = "all" | "active" | "completed" | "overdue";
 
-type CategoryFilter =
-  | "all"
-  | Category;
+type CategoryFilter = "all" | Category;
 
 type SortOption =
   | "default"
@@ -75,16 +60,13 @@ function getAuthenticatedOptions(
 }
 
 export function useTasks() {
-  const [tasks, setTasks] =
-    useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
 
   const [filter, setFilter] =
     useState<TaskFilter>("all");
 
-  const [
-    categoryFilter,
-    setCategoryFilter,
-  ] = useState<CategoryFilter>("all");
+  const [categoryFilter, setCategoryFilter] =
+    useState<CategoryFilter>("all");
 
   const [searchTerm, setSearchTerm] =
     useState("");
@@ -98,24 +80,14 @@ export function useTasks() {
   const [error, setError] =
     useState("");
 
-  const [
-    successNotification,
-    setSuccessNotification,
-  ] =
-    useState<SuccessNotification | null>(
-      null
-    );
+  const [successNotification, setSuccessNotification] =
+    useState<SuccessNotification | null>(null);
 
-  const showSuccess = (
-    message: string
-  ) => {
-    setSuccessNotification(
-      (current) => ({
-        id:
-          (current?.id ?? 0) + 1,
-        message,
-      })
-    );
+  const showSuccess = (message: string) => {
+    setSuccessNotification((current) => ({
+      id: (current?.id ?? 0) + 1,
+      message,
+    }));
   };
 
   const loadTasks = async () => {
@@ -124,6 +96,8 @@ export function useTasks() {
       setError("");
 
       const token = getTokenValue();
+
+      console.log("TASKFLOW TOKEN:", token);
 
       let response: Response;
 
@@ -137,22 +111,17 @@ export function useTasks() {
         response = await fetch(API_URL);
       }
 
-      const data =
-        await response.json();
+      const data = await response.json();
 
-      if (response.ok === false) {
+      if (!response.ok) {
         throw new Error(
-          data.error ||
-            "Failed to load tasks"
+          data.error || "Failed to load tasks"
         );
       }
 
       setTasks(data);
     } catch (error) {
-      console.error(
-        "Error loading tasks:",
-        error
-      );
+      console.error("Error loading tasks:", error);
 
       setError(
         "Unable to load tasks. Please try again."
@@ -173,49 +142,38 @@ export function useTasks() {
     category: Category = "Other"
   ) => {
     try {
-      const response =
-        await fetch(
-          API_URL,
-          getAuthenticatedOptions({
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            body: JSON.stringify({
-              text,
-              dueDate,
-              priority,
-              category,
-            }),
-          })
-        );
+      const response = await fetch(
+        API_URL,
+        getAuthenticatedOptions({
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text,
+            dueDate,
+            priority,
+            category,
+          }),
+        })
+      );
 
-      const newTask =
-        await response.json();
+      const newTask = await response.json();
 
-      if (response.ok === false) {
+      if (!response.ok) {
         throw new Error(
-          newTask.error ||
-            "Failed to add task"
+          newTask.error || "Failed to add task"
         );
       }
 
-      setTasks(
-        (currentTasks) => [
-          ...currentTasks,
-          newTask,
-        ]
-      );
+      setTasks((currentTasks) => [
+        ...currentTasks,
+        newTask,
+      ]);
 
-      showSuccess(
-        "Task added successfully"
-      );
+      showSuccess("Task added successfully");
     } catch (error) {
-      console.error(
-        "Error adding task:",
-        error
-      );
+      console.error("Error adding task:", error);
     }
   };
 
@@ -227,60 +185,44 @@ export function useTasks() {
     category: Category = "Other"
   ): Promise<void> => {
     try {
-      const response =
-        await fetch(
-          `${API_URL}/${id}`,
-          getAuthenticatedOptions({
-            method: "PUT",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            body: JSON.stringify({
-              text,
-              dueDate,
-              priority,
-              category,
-            }),
-          })
-        );
+      const response = await fetch(
+        `${API_URL}/${id}`,
+        getAuthenticatedOptions({
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text,
+            dueDate,
+            priority,
+            category,
+          }),
+        })
+      );
 
-      const updatedTask =
-        await response.json();
+      const updatedTask = await response.json();
 
-      if (response.ok === false) {
+      if (!response.ok) {
         throw new Error(
-          updatedTask.error ||
-            "Failed to edit task"
+          updatedTask.error || "Failed to edit task"
         );
       }
 
-      setTasks(
-        (currentTasks) =>
-          currentTasks.map(
-            (task) =>
-              task.id === id
-                ? updatedTask
-                : task
-          )
+      setTasks((currentTasks) =>
+        currentTasks.map((task) =>
+          task.id === id ? updatedTask : task
+        )
       );
 
-      showSuccess(
-        "Task updated successfully"
-      );
+      showSuccess("Task updated successfully");
     } catch (error) {
-      console.error(
-        "Error editing task:",
-        error
-      );
-
+      console.error("Error editing task:", error);
       throw error;
     }
   };
 
-  const toggleTask = async (
-    id: number
-  ) => {
+  const toggleTask = async (id: number) => {
     try {
       const token = getTokenValue();
 
@@ -305,24 +247,18 @@ export function useTasks() {
         );
       }
 
-      const updatedTask =
-        await response.json();
+      const updatedTask = await response.json();
 
-      if (response.ok === false) {
+      if (!response.ok) {
         throw new Error(
-          updatedTask.error ||
-            "Failed to update task"
+          updatedTask.error || "Failed to update task"
         );
       }
 
-      setTasks(
-        (currentTasks) =>
-          currentTasks.map(
-            (task) =>
-              task.id === id
-                ? updatedTask
-                : task
-          )
+      setTasks((currentTasks) =>
+        currentTasks.map((task) =>
+          task.id === id ? updatedTask : task
+        )
       );
 
       showSuccess(
@@ -331,16 +267,11 @@ export function useTasks() {
           : "Task marked as active"
       );
     } catch (error) {
-      console.error(
-        "Error updating task:",
-        error
-      );
+      console.error("Error updating task:", error);
     }
   };
 
-  const deleteTask = async (
-    id: number
-  ) => {
+  const deleteTask = async (id: number) => {
     try {
       const token = getTokenValue();
 
@@ -365,112 +296,81 @@ export function useTasks() {
         );
       }
 
-      if (response.ok === false) {
-        let message =
-          "Failed to delete task";
+      if (!response.ok) {
+        let message = "Failed to delete task";
 
         try {
-          const data =
-            await response.json();
-
-          message =
-            data.error || message;
+          const data = await response.json();
+          message = data.error || message;
         } catch {
-          // DELETE 404/204 may
-          // have no JSON body.
+          // DELETE response may have no JSON body.
         }
 
         throw new Error(message);
       }
 
-      setTasks(
-        (currentTasks) =>
-          currentTasks.filter(
-            (task) =>
-              task.id !== id
-          )
+      setTasks((currentTasks) =>
+        currentTasks.filter(
+          (task) => task.id !== id
+        )
       );
 
-      showSuccess(
-        "Task deleted successfully"
-      );
+      showSuccess("Task deleted successfully");
     } catch (error) {
-      console.error(
-        "Error deleting task:",
-        error
-      );
+      console.error("Error deleting task:", error);
     }
   };
 
-  const filteredTasks =
-    tasks.filter((task) => {
-      let matchesStatus = true;
-      let matchesCategory = true;
-      let matchesSearch = true;
+  const filteredTasks = tasks.filter((task) => {
+    let matchesStatus = true;
+    let matchesCategory = true;
+    let matchesSearch = true;
 
-      if (filter === "active") {
-        matchesStatus =
-          !task.completed;
-      }
+    if (filter === "active") {
+      matchesStatus = !task.completed;
+    }
 
-      if (filter === "completed") {
-        matchesStatus =
-          task.completed;
-      }
+    if (filter === "completed") {
+      matchesStatus = task.completed;
+    }
 
-      if (filter === "overdue") {
-        matchesStatus =
-          !task.completed &&
-          task.dueDate !== null &&
-          new Date(task.dueDate) <
-            new Date();
-      }
+    if (filter === "overdue") {
+      matchesStatus =
+        !task.completed &&
+        task.dueDate !== null &&
+        new Date(task.dueDate) < new Date();
+    }
 
-      if (
-        categoryFilter !== "all"
-      ) {
-        matchesCategory =
-          (task.category ??
-            "Other") ===
-          categoryFilter;
-      }
+    if (categoryFilter !== "all") {
+      matchesCategory =
+        (task.category ?? "Other") ===
+        categoryFilter;
+    }
 
-      if (
-        searchTerm.trim() !== ""
-      ) {
-        matchesSearch =
-          task.text
-            .toLowerCase()
-            .includes(
-              searchTerm
-                .trim()
-                .toLowerCase()
-            );
-      }
+    if (searchTerm.trim() !== "") {
+      matchesSearch = task.text
+        .toLowerCase()
+        .includes(
+          searchTerm.trim().toLowerCase()
+        );
+    }
 
-      return (
-        matchesStatus &&
-        matchesCategory &&
-        matchesSearch
-      );
-    });
+    return (
+      matchesStatus &&
+      matchesCategory &&
+      matchesSearch
+    );
+  });
 
-  const sortedTasks = [
-    ...filteredTasks,
-  ];
+  const sortedTasks = [...filteredTasks];
 
-  const priorityOrder: Record<
-    Priority,
-    number
-  > = {
+  const priorityOrder: Record<Priority, number> = {
     high: 1,
     medium: 2,
     low: 3,
   };
 
-  if (
-    sortBy === "priority-high"
-  ) {
+  if (sortBy === "priority-high") {
     sortedTasks.sort(
       (a, b) =>
         priorityOrder[a.priority] -
@@ -478,9 +378,7 @@ export function useTasks() {
     );
   }
 
-  if (
-    sortBy === "priority-low"
-  ) {
+  if (sortBy === "priority-low") {
     sortedTasks.sort(
       (a, b) =>
         priorityOrder[b.priority] -
@@ -490,10 +388,7 @@ export function useTasks() {
 
   if (sortBy === "due-date") {
     sortedTasks.sort((a, b) => {
-      if (
-        !a.dueDate &&
-        !b.dueDate
-      ) {
+      if (!a.dueDate && !b.dueDate) {
         return 0;
       }
 
@@ -506,23 +401,15 @@ export function useTasks() {
       }
 
       return (
-        new Date(
-          a.dueDate
-        ).getTime() -
-        new Date(
-          b.dueDate
-        ).getTime()
+        new Date(a.dueDate).getTime() -
+        new Date(b.dueDate).getTime()
       );
     });
   }
 
-  if (
-    sortBy === "alphabetical"
-  ) {
+  if (sortBy === "alphabetical") {
     sortedTasks.sort((a, b) =>
-      a.text.localeCompare(
-        b.text
-      )
+      a.text.localeCompare(b.text)
     );
   }
 
@@ -544,6 +431,7 @@ export function useTasks() {
 
     isLoading,
     error,
+
     retryLoadTasks: loadTasks,
 
     successNotification,
